@@ -108,27 +108,28 @@ python main.py
 
 ```
 ├── backend                             # 后端代码
-│   ├── libs
-│   │   └── windows/opus.dll            # Windows 系统需要的音频编解码依赖库
-│   ├── .env.example                    # 环境变量配置示例文件
-│   ├── app.py                          # 程序入口
-│   ├── system_info.py                  # Windows 处理 opus.dll 加载失败的函数
-│   ├── websocket_proxy.py              # WebSocket 代理
+│   ├── app                             # 应用程序内的代码逻辑
+│   |   ├── constant                    # 常量
+│   |   ├── libs                        # 工具库
+│   |   ├── proxy                       # websocket 代理
+│   |   ├── router                      # 路由
+│   │   └── config.py                   # 配置文件
+│   ├── main.py                         # 程序入口
 │   └── requirements.txt                # 依赖库列表
 ├── frontend/xiaozhi-webui              # 前端代码
 │   ├── public
 │   │   └──  favicon.ico                # 网站图标
-│   ├── utils                           # 函数工具
+│   ├── utils                           
 │   │   └──  audio/audioProcessor.ts    # 自定义音频节点的处理类
-│   ├── src                             # 源代码
-│   |   ├── assets                      # 静态资源，全局样式文件等
-│   |   ├── stores                      # Pinia 状态管理
+│   ├── src                             
+│   |   ├── assets                      # 静态资源
+│   |   ├── stores                      # 状态管理
 │   |   ├── App.vue                     # 根组件
-│   |   └── main.ts                     # 入口文件
+│   |   └── main.ts                     
 │   ├── package.json                    # 项目依赖配置
-│   ├── tsconfig.json                   # TypeScript 配置文件
+│   ├── tsconfig.json                   # TS 配置文件
 │   ├── vite.config.ts                  # Vite 配置文件
-│   └── index.html                      # 入口 HTML 文件
+│   └── index.html                      
 ├── .gitignore                          # Git 忽略文件
 ├── LICENSE                             # 许可证文件
 └── README.md                           # 项目说明文件
