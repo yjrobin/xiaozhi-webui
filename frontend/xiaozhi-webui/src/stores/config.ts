@@ -54,19 +54,21 @@ export const useConfigStore = defineStore('config', () => {
     try {
       const response = await fetch(import.meta.env.VITE_APP_SERVER_URL + "/config")
       const data = await response.json()
-      console.log("[useConfigStore][init] data: ", data)
-      if (data.ws_proxy_url) {
-        setWSProxyURL(data.ws_proxy_url)
+      console.log("[useConfigStore][init] data: ", data.data)
+      if (data.data.ws_proxy_url) {
+        setWSProxyURL(data.data.ws_proxy_url)
       }
-      if (data.ws_url) {
-        setWSURL(data.ws_url)
+      if (data.data.ws_url) {
+        setWSURL(data.data.ws_url)
       }
-      if (data.token_enable) {
-        setTokenEnable(data.token_enable)
-        setToken(data.token)
+      if (data.data.token_enable) {
+        setTokenEnable(data.data.token_enable)
+        setToken(data.data.token)
       }
-      if (data.device_id) {
-        setDeviceID(data.device_id)
+      if (data.data.device_id) {
+        setDeviceID(data.data.device_id)
+        console.log("[useConfigStore][init] device_id: ", getDeviceID())
+        console.log("[useConfigStore][init] data.data.device_id: ", data.data.device_id)
       }
     } catch (error) {
       console.error("[useConfigStore][init]", error)
