@@ -2,20 +2,17 @@ from .websocket_proxy import WebSocketProxy
 from ..config import configuration
 import asyncio
 
-proxy_process = None
 
-
-def cleanup():
+def cleanup(process):
     """清理进程"""
-    global proxy_process
-    if proxy_process:
-        proxy_process.terminate()
-        proxy_process.join()
-        proxy_process = None
+    if process:
+        process.terminate()
+        process.join()
+        process = None
 
 
 def run_proxy():
-    """在单独的进程中运行proxy服务器"""
+    """在单独的进程中运行代理服务器"""
     proxy = WebSocketProxy(
         device_id=configuration.get("DEVICE_ID"),
         client_id=configuration.get("CLIENT_ID"),
