@@ -15,9 +15,9 @@ class ConfigManager:
             "WS_URL": "wss://api.tenclass.net/xiaozhi/v1/",
             "TOKEN_ENABLE": "true",
             "DEVICE_TOKEN": "test_token",
-            "PROXY_HOST": "0.0.0.0",
+            "PROXY_HOST": "localhost",
             "PROXY_PORT": "5000",
-            "BACKEND_HOST": "0.0.0.0",
+            "BACKEND_HOST": "localhost",
             "BACKEND_PORT": "8081",
         }
         self._config = None
@@ -28,20 +28,20 @@ class ConfigManager:
         config_file_path = os.path.join(BASE_DIR, "config", "config.json")
 
         if not os.path.exists(config_file_path):
-            logger.info("[app][get_env] 未找到配置文件，正在创建: ", config_file_path)
+            logger.info("配置文件不存在，正在创建默认配置: ", config_file_path)
             os.makedirs(os.path.join(BASE_DIR, "config"), exist_ok=True)
             self._default_config["CLIENT_ID"] = get_client_id()
             self._default_config["DEVICE_ID"] = get_mac_address()
             with open(config_file_path, "w") as f:
                 json.dump(self._default_config, f, indent=4)
 
-        logger.info("[app][get_env] 正在加载配置文件: ", config_file_path)
+        logger.info("正在加载配置: ", config_file_path)
 
         try:
             with open(config_file_path, "r") as f:
                 self._config = json.load(f)
         except json.JSONDecodeError:
-            logger.warning("[app][get_env] 配置文件格式错误，正在重置为默认配置")
+            logger.warning("配置文件格式错误，正在重置配置")
             with open(config_file_path, "w") as f:
                 json.dump(self._default_config, f, indent=4)
             self._config = self._default_config
