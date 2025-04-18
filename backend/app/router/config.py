@@ -15,7 +15,7 @@ class GetConfigResponse(BaseResponse):
 @router.get("", summary="获取配置信息", response_model=GetConfigResponse)
 def get_config():
     """获取配置信息"""
-    logger.info("Configurations: ", configuration.get_config())
+    logger.info("配置信息: ", configuration.get_config())
     data = {
         "ws_url": configuration.get("WS_URL"),
         "ws_proxy_url": f"ws://{configuration.get("PROXY_HOST")}:{configuration.get("PROXY_PORT")}",
@@ -47,8 +47,8 @@ def update_config(data: ConfigData):
         if data.token_enable:
             configuration.set("DEVICE_TOKEN", data.token)
         configuration.save_config()
-        logger.info("Configuration updated successfully")
+        logger.info("配置信息更新成功")
         return {"message": "配置文件更新成功", "code": 0}
     except Exception as e:
-        logger.error(f"Failed to update configuration: {e}")
+        logger.error(f"配置信息更新失败: {e}")
         return {"message": f"配置文件更新失败: {str(e)}", "code": 1}
