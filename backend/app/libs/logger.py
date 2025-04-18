@@ -4,6 +4,7 @@ import logging
 from colorlog import ColoredFormatter
 from ..constant.file import BASE_DIR
 
+
 def setup_logging():
     """
     配置日志
@@ -34,13 +35,13 @@ def setup_logging():
     file_handler.suffix = "%Y-%m-%d.log"
 
     # 创建格式化器
-    formatter = logging.Formatter("%(asctime)s [%(name)s] - %(levelname)s - %(message)s - %(threadName)s")
+    formatter = logging.Formatter("%(asctime)s [%(name)s] - %(levelname)s - %(message)s - %(processName)s")
 
     # 控制台颜色格式化器
     color_formatter = ColoredFormatter(
         "%(green)s%(asctime)s%(reset)s [%(blue)s%(name)s%(reset)s] - "
         "%(log_color)s%(levelname)s%(reset)s - %(green)s%(message)s%(reset)s - "
-        "%(cyan)s%(threadName)s%(reset)s",
+        "%(cyan)s%(processName)s%(reset)s",
         log_colors={
             "DEBUG": "cyan",
             "INFO": "white",
@@ -58,7 +59,7 @@ def setup_logging():
     root_logger.addHandler(console_handler)
 
     # 输出日志配置信息
-    logging.info("Logger has initialized, path: %s", log_file)
+    logging.info("日志系统初始化完毕，路径: %s", log_file)
 
     return log_file
 
