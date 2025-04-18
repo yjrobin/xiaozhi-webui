@@ -261,7 +261,9 @@ const connect = (): void => {
         else if (data.type === "tts") {
           if (data.state === "stop") {
             console.log("[App][ws.onmessage] AI speak done.");
-            await startRecording();
+            if (isPhoneCallPanelVisible.value) {
+              await startRecording();
+            }
           } else if (data.state === "sentence_start") {
             appendMessage("server", data.text);
             chatContainer.value!.scrollTop = chatContainer.value!.scrollHeight;
