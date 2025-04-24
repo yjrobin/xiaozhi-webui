@@ -10,12 +10,14 @@ xiaozhi-webui 是一个使用 Python + Vue3 实现的小智语音 Web 端，旨�
 
 ## 功能特点
 
-- **文字聊天模式**：像微信好友一样聊天
-- **语音对话**：和小智语音进行聊天
-- **设置页面**：将用户的配置保存至后端
-- **自动获取 MAC 地址**：避免 MAC 地址冲突
-- **反馈动画**：（语音对话时）用户的讲话波形 + 小智的回答涟漪动画
-- **自动生成配置文件**：避免繁杂的配置流程
+- **文字聊天**：像微信好友一样聊天
+- **语音聊天**：和小智语音进行聊天
+- **打断机制**：与小智语音通话时可以顺畅打断
+- **自动配置**：自动获取 MAC 地址、更新 OTA 版本，避免繁杂的配置流程
+- **反馈动效**：（语音对话时）用户的讲话波形 + 小智的回答涟漪动画
+- **组件化设计**：更好的代码组织和维护性
+- **状态管理优化**：使用 Pinia 进行状态管理
+- **TypeScript 支持**：提供更好的类型安全和开发体验
 
 ## 项目展示
 
@@ -117,23 +119,42 @@ python main.py
 │   ├── main.py                         # 程序入口
 │   └── requirements.txt                # 依赖库列表
 ├── frontend/xiaozhi-webui              # 前端代码
-│   ├── public
-│   │   └──  favicon.ico                # 网站图标
-│   ├── utils                           
-│   │   └──  audio/audioProcessor.ts    # 自定义音频节点的处理类
 │   ├── src                             
-│   |   ├── assets                      # 静态资源
-│   |   ├── stores                      # 状态管理
-│   |   ├── App.vue                     # 根组件
-│   |   └── main.ts                     
-│   ├── package.json                    # 项目依赖配置
-│   ├── tsconfig.json                   # TS 配置文件
-│   ├── vite.config.ts                  # Vite 配置文件
-│   └── index.html                      
+│   │   ├── assets                      # 静态资源
+│   │   ├── components                  # 组件目录
+│   │   │   ├── Header                  # 头部组件
+│   │   │   ├── Setting                 # 设置面板组件
+│   │   │   ├── VoiceCall               # 语音通话组件
+│   │   │   ├── InputField              # 输入框组件
+│   │   │   └── ChatContainer           # 聊天容器组件
+│   │   ├── services                 # 组合式函数
+│   │   │   ├── useWebSocket            # WebSocket 相关逻辑
+│   │   │   ├── useVoiceState           # 语音状态管理
+│   │   │   └── useVoiceAnimation       # 语音动画效果
+│   │   ├── stores                      # 状态管理
+│   │   ├── types                       # 类型定义
+│   │   ├── utils                       # 工具函数
+│   │   ├── App.vue                     # 根组件
+│   │   └── main.ts 
 ├── .gitignore                          # Git 忽略文件
 ├── LICENSE                             # 许可证文件
 └── README.md                           # 项目说明文件
 ```
+
+## 技术栈
+
+### 前端
+- Vue 3
+- TypeScript
+- Pinia
+- WebSocket
+- Web Audio API
+- AudioWorklet
+
+### 后端
+- Python 3.12.0
+- FastAPI
+- WebSocket
 
 ## 贡献
 
