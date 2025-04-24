@@ -119,23 +119,23 @@ python main.py
 │   ├── main.py                         # 程序入口
 │   └── requirements.txt                # 依赖库列表
 ├── frontend/xiaozhi-webui              # 前端代码
-│   ├── src                             
-│   │   ├── assets                      # 静态资源
-│   │   ├── components                  # 组件目录
-│   │   │   ├── Header                  # 头部组件
-│   │   │   ├── Setting                 # 设置面板组件
-│   │   │   ├── VoiceCall               # 语音通话组件
-│   │   │   ├── InputField              # 输入框组件
-│   │   │   └── ChatContainer           # 聊天容器组件
-│   │   ├── services                 # 组合式函数
-│   │   │   ├── useWebSocket            # WebSocket 相关逻辑
-│   │   │   ├── useVoiceState           # 语音状态管理
-│   │   │   └── useVoiceAnimation       # 语音动画效果
-│   │   ├── stores                      # 状态管理
-│   │   ├── types                       # 类型定义
-│   │   ├── utils                       # 工具函数
-│   │   ├── App.vue                     # 根组件
-│   │   └── main.ts 
+│   └── src                             
+│       ├── assets                      # 静态资源
+│       ├── components                  # 组件目录
+│       │   ├── Header                  # 头部组件
+│       │   ├── Setting                 # 设置面板组件
+│       │   ├── VoiceCall               # 语音通话组件
+│       │   ├── InputField              # 输入框组件
+│       │   └── ChatContainer           # 聊天容器组件
+│       ├── services                 # 组合式函数
+│       │   ├── useWebSocket            # WebSocket 相关逻辑
+│       │   ├── useVoiceState           # 语音状态管理
+│       │   └── useVoiceAnimation       # 语音动画效果
+│       ├── stores                      # 状态管理
+│       ├── types                       # 类型定义
+│       ├── utils                       # 工具函数
+│       ├── App.vue                     # 根组件
+│       └── main.ts 
 ├── .gitignore                          # Git 忽略文件
 ├── LICENSE                             # 许可证文件
 └── README.md                           # 项目说明文件
