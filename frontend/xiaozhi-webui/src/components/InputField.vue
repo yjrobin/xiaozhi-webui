@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, computed, defineProps } from 'vue';
 import { VoiceState } from '@/types/voice';
-import type { VoiceStateManager } from '@/composables/useVoiceState';
-import type { WebSocketService } from '@/composables/useWebSocket';
+import type { VoiceStateManager } from '@/services/VoiceStateManager';
+import type { WebSocketService } from '@/services/WebSocketService';
 
 const props = defineProps<{
     voiceStateManager: VoiceStateManager;
@@ -37,9 +37,7 @@ const handleKeyPress = (e: KeyboardEvent) => {
     }
 };
 
-/**
- * 客户端发送消息至服务端
- */
+// 客户端发送消息至服务端代理
 function sendMessage(text: string) {
     // 发送文本消息
     const textMessage = JSON.stringify({

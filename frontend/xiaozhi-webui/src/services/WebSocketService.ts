@@ -1,4 +1,3 @@
-// services/WebSocketService.ts
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useSettingStore } from '@/stores/setting'

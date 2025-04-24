@@ -6,7 +6,7 @@ const settingStore = useSettingStore();
 const chatContainerRef = ref<InstanceType<typeof ChatContainer> | null>(null);
 
 // ---------- WebSocket 连接相关 start ----------
-import { WebSocketService } from "./composables/useWebSocket";
+import { WebSocketService } from "./services/WebSocketService";
 
 const wsService = new WebSocketService({
   async onAudioMessage(event) {
@@ -167,7 +167,7 @@ const playQueuedAudio = async () => {
 
 
 // ---------- 语音通话 start --------------
-import { VoiceStateManager } from "./composables/useVoiceState";
+import { VoiceStateManager } from "./services/VoiceStateManager";
 import { VoiceState } from "./types/voice";
 
 const voiceStateManager = new VoiceStateManager({
@@ -385,7 +385,7 @@ onUnmounted(async () => {
 
 
 // ---------- 对话的动态效果 start ----------
-import { VoiceAnimationManager } from "./composables/useVoiceAnimation";
+import { VoiceAnimationManager } from "./services/VoiceAnimationManager";
 
 const voiceAnimationManager = new VoiceAnimationManager();
 

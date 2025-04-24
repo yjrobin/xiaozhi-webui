@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { defineProps } from 'vue';
 import { VoiceState } from '@/types/voice';
-import type { VoiceAnimationManager } from '@/composables/useVoiceAnimation';
-import type { VoiceStateManager } from '@/composables/useVoiceState';
+import type { VoiceAnimationManager } from '@/services/VoiceAnimationManager';
+import type { VoiceStateManager } from '@/services/VoiceStateManager';
 
 const props = defineProps<{
     isVisible: boolean;
@@ -16,8 +16,10 @@ const props = defineProps<{
 
     <div class="phone-call-container" :class="{ active: props.isVisible }">
         <div class="voice-avatar-container">
-            <div class="voice-avatar" :class="{ speaking: props.voiceAnimationManager.aiSpeaking.value }"
-                :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }">
+            <div class="voice-avatar"
+                :class="{ speaking: props.voiceAnimationManager.aiSpeaking.value }"
+                :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }"
+            >
                 <div v-for="i in 3" :key="i" :class="`ripple-${i}`"></div>
                 <img src="/avatar.jpg" alt="小智头像" />
             </div>
