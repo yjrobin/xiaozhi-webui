@@ -49,18 +49,18 @@ class ConfigManager:
     def get(self, key: str) -> str:
         return self._config.get(key)
 
+    def set(self, key: str, value: str) -> None:
+        self._config[key] = value
+
     def get_config(self) -> dict:
         """获取配置文件内容"""
         return self._config
 
-    def set_config(self, key: str, value: str) -> None:
-        """设置配置文件内容"""
-        self._config[key] = value
-
     def save_config(self) -> None:
         """保存配置文件内容"""
-        with open(self.CONFIG_FILE, "w") as f:
-            json.dump(self._config, f)
+        config_file_path = os.path.join(BASE_DIR, "config", "config.json")
+        with open(config_file_path, "w") as f:
+            json.dump(self._config, f, indent=4)
 
 
 configuration = ConfigManager()

@@ -172,10 +172,18 @@ class WebSocketProxy:
             "uuid": self.client_id,
             "chip_model_name": "esp32s3",  # 芯片型号
             "chip_info": {"model": 9, "cores": 2, "revision": 2, "features": 18},
-            "application": {"name": "xiaozhi", "version": "1.1.2", "idf_version": "v5.3.2-dirty"},
+            "application": {
+                "name": "xiaozhi",
+                "version": "1.1.2",
+                "idf_version": "v5.3.2-dirty",
+            },
             "partition_table": [],  # 省略分区表信息
             "ota": {"label": "factory"},
-            "board": {"type": "bread-compact-wifi", "ip": get_local_ip(), "mac": MAC_ADDR},
+            "board": {
+                "type": "bread-compact-wifi",
+                "ip": get_local_ip(),
+                "mac": MAC_ADDR,
+            },
         }
 
         try:
@@ -202,7 +210,9 @@ class WebSocketProxy:
                 return response_data["mqtt"]
             else:
                 logger.error("OTA 服务器返回的数据无效: 没有 MQTT 信息.")
-                raise ValueError("OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址！")
+                raise ValueError(
+                    "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址！"
+                )
 
         except requests.Timeout:
             logger.error("OTA 请求超时.")
@@ -250,13 +260,21 @@ class WebSocketProxy:
     async def proxy_handler(self, websocket):
         """来自浏览器的 WebSocket 连接"""
         try:
-            logger.info(f"正在创建新的客户端 websocket 连接: {websocket.remote_address}")
-            async with websockets.connect(self.websocket_url, extra_headers=self.headers) as server_ws:
+            logger.info(
+                f"正在创建新的客户端 websocket 连接: {websocket.remote_address}"
+            )
+            async with websockets.connect(
+                self.websocket_url, extra_headers=self.headers
+            ) as server_ws:
                 logger.info(f"已连接至 websocket 服务器，请求头: {self.headers}")
 
                 # 创建任务
-                client_to_server = asyncio.create_task(self.handle_client_messages(websocket, server_ws))
-                server_to_client = asyncio.create_task(self.handle_server_messages(server_ws, websocket))
+                client_to_server = asyncio.create_task(
+                    self.handle_client_messages(websocket, server_ws)
+                )
+                server_to_client = asyncio.create_task(
+                    self.handle_server_messages(server_ws, websocket)
+                )
 
                 # 等待任意一个任务完成
                 done, pending = await asyncio.wait(
@@ -280,24 +298,38 @@ class WebSocketProxy:
                 if isinstance(message, str):
                     try:
                         msg_data = json.loads(message)
-                        if msg_data.get("type") == "tts" and msg_data.get("state") == "start":
+                        if (
+                            msg_data.get("type") == "tts"
+                            and msg_data.get("state") == "start"
+                        ):
                             # 新的音频流开始，播放未发送完的语音并重置状态
                             if len(self.audio_buffer) > 44:
                                 async with self.audio_lock:
-                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(4, "little")
-                                    subchunk2_size = (self.total_samples * 2).to_bytes(4, "little")
+                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(
+                                        4, "little"
+                                    )
+                                    subchunk2_size = (self.total_samples * 2).to_bytes(
+                                        4, "little"
+                                    )
                                     self.audio_buffer[4:8] = chunk_size
                                     self.audio_buffer[40:44] = subchunk2_size
                                     await client_ws.send(bytes(self.audio_buffer))
                             self.audio_buffer = bytearray()
                             self.is_first_audio = True
                             self.total_samples = 0
-                        elif msg_data.get("type") == "tts" and msg_data.get("state") == "stop":
+                        elif (
+                            msg_data.get("type") == "tts"
+                            and msg_data.get("state") == "stop"
+                        ):
                             # 音频流结束，发送剩余数据并重置状态
                             if len(self.audio_buffer) > 44:
                                 async with self.audio_lock:
-                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(4, "little")
-                                    subchunk2_size = (self.total_samples * 2).to_bytes(4, "little")
+                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(
+                                        4, "little"
+                                    )
+                                    subchunk2_size = (self.total_samples * 2).to_bytes(
+                                        4, "little"
+                                    )
                                     self.audio_buffer[4:8] = chunk_size
                                     self.audio_buffer[40:44] = subchunk2_size
                                     await client_ws.send(bytes(self.audio_buffer))
@@ -316,12 +348,16 @@ class WebSocketProxy:
 
                             if pcm_data:
                                 # 计算采样数
-                                samples = len(pcm_data) // 2  # 16 位音频，每个采样 2 字节
+                                samples = (
+                                    len(pcm_data) // 2
+                                )  # 16 位音频，每个采样 2 字节
                                 self.total_samples += samples
 
                                 # 如果是第一个音频片段，创建 Wave 头
                                 if self.is_first_audio:
-                                    self.audio_buffer.extend(self.create_wav_header(self.total_samples))
+                                    self.audio_buffer.extend(
+                                        self.create_wav_header(self.total_samples)
+                                    )
                                     self.is_first_audio = False
 
                                 # 追加音频数据
@@ -333,8 +369,12 @@ class WebSocketProxy:
                                 if len(self.audio_buffer) >= 64044:
 
                                     # 更新 Wave 头中的元数据
-                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(4, "little")
-                                    subchunk2_size = (self.total_samples * 2).to_bytes(4, "little")
+                                    chunk_size = (self.total_samples * 2 + 36).to_bytes(
+                                        4, "little"
+                                    )
+                                    subchunk2_size = (self.total_samples * 2).to_bytes(
+                                        4, "little"
+                                    )
                                     self.audio_buffer[4:8] = chunk_size
                                     self.audio_buffer[40:44] = subchunk2_size
 
@@ -355,14 +395,11 @@ class WebSocketProxy:
         """处理来自客户端的消息"""
         try:
             async for message in client_ws:
-
-                # 文字数据和 Json 数据
+                # 文字数据
                 if isinstance(message, str):
                     try:
                         msg_data = json.loads(message)
-                        if isinstance(msg_data, list):
-                            server_ws.send(message)
-                        elif msg_data.get("type") == "reset":
+                        if msg_data.get("type") == "reset":
                             logger.info("重置音频缓存区")
                             self.audio_processor.reset_buffer()
                         else:
@@ -376,7 +413,9 @@ class WebSocketProxy:
                         # 确保数据是 Float32Array 格式
                         audio_data = np.frombuffer(message, dtype=np.float32)
                         if len(audio_data) > 0:
-                            chunks = self.audio_processor.process_audio(audio_data.tobytes())
+                            chunks = self.audio_processor.process_audio(
+                                audio_data.tobytes()
+                            )
                             for chunk in chunks if chunks else []:
                                 opus_data = pcm_to_opus(chunk)
                                 await server_ws.send(opus_data)
@@ -389,5 +428,7 @@ class WebSocketProxy:
 
     async def main(self):
         """启动代理服务器"""
-        async with websockets.serve(self.proxy_handler, self.proxy_host, self.proxy_port):
+        async with websockets.serve(
+            self.proxy_handler, self.proxy_host, self.proxy_port
+        ):
             await asyncio.Future()

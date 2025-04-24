@@ -39,6 +39,7 @@ class ConfigData(BaseModel):
 @router.put("", summary="更新配置", response_model=BaseResponse)
 def update_config(data: ConfigData):
     """保存配置信息"""
+    logger.info(f"配置信息: {data}")
     try:
         configuration.set("WS_URL", data.ws_url)
         configuration.set("PROXY_HOST", urlparse(data.ws_proxy_url).hostname)
