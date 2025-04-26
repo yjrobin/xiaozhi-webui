@@ -10,6 +10,7 @@ import { WebSocketService } from "./services/WebSocketService";
 
 const wsService = new WebSocketService({
   async onAudioMessage(event) {
+    console.log("[WebSocketService][onAudioMessage] audio data received:", event);
     // 如果当前是 USER_SPEAKING 状态，不接收音频数据
     if (voiceStateManager.currentState.value === VoiceState.USER_SPEAKING) {
       console.warn("[WebSocketService][onAudioMessage] In interrupted state, discarding old audio data");
@@ -250,6 +251,9 @@ voiceStateManager.on("stateChange", (newState: VoiceState) => {
     console.log("[VoiceStateManager][stateChange] State", oldState, "not changed")
     return;
   } else {
+    if (newState == VoiceState.IDLE) {
+      voiceAnimationManager.updateAIWave(0);
+    }
     voiceStateManager.currentState.value = newState;
     console.log("[VoiceStateManager][stateChange] State changed from", oldState, "to", newState)
   }
@@ -264,7 +268,6 @@ const showVoiceCallPanel = async () => {
   }
 
   await prepareMediaResources();
-  await connectMediaResources();
   if (audioContext.state == 'suspended') {
     audioContext.resume();
   }
@@ -343,10 +346,6 @@ const prepareMediaResources = async () => {
     console.log("[App][processorNode.port.onmessage] Audio Level:", audioLevel.toFixed(2));
     voiceStateManager.handleUserAudioLevel(audioLevel, e.data);
   };
-};
-
-// 连接音频上下文中的各个节点
-const connectMediaResources = async () => {
   if (!audioStream || !userMediaNode || !processorNode) {
     console.log("[App][connectMediaResources] Resources not ready.");
     return;

@@ -5,7 +5,6 @@ export class VoiceAnimationManager {
     private readonly minWaveHeight: number = 6;
     private readonly maxAIScale: number = 1.05;
     public voiceWaveHeight = ref<number>(0);
-    public aiSpeaking = ref<boolean>(false);
     public avatarScale = ref<number>(1);
 
     constructor() { }
@@ -22,12 +21,7 @@ export class VoiceAnimationManager {
     }
 
     public updateAIWave(audioLevel: number) {
-        if (audioLevel > 0.01) {
-            this.avatarScale.value = 1 + Math.min(this.maxAIScale - 1, audioLevel * 2);
-            this.aiSpeaking.value = true;
-        } else {
-            this.avatarScale.value = 1;
-            this.aiSpeaking.value = false;
-        }
+        this.avatarScale.value = 1 + Math.min(this.maxAIScale - 1, audioLevel * 200 - 0.1);
+        this.avatarScale.value = Math.max(this.avatarScale.value, 1);
     }
 }

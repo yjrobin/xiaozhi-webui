@@ -15,14 +15,11 @@ const props = defineProps<{
 <template>
 
     <div class="phone-call-container" :class="{ active: props.isVisible }">
-        <div class="voice-avatar-container">
-            <div class="voice-avatar"
-                :class="{ speaking: props.voiceAnimationManager.aiSpeaking.value }"
-                :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }"
-            >
-                <div v-for="i in 3" :key="i" :class="`ripple-${i}`"></div>
+        <div class="voice-avatar-container" :class="{ speaking: props.voiceStateManager.currentState.value === VoiceState.AI_SPEAKING }">
+            <div class="voice-avatar" :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }">
                 <img src="/avatar.jpg" alt="小智头像" />
             </div>
+            <div v-for="i in 3" :key="i" :class="`ripple-${i}`"></div>
         </div>
         <div class="voice-wave-container">
             <div class="voice-wave"
@@ -149,9 +146,9 @@ const props = defineProps<{
     }
 
     /* 多层涟漪效果 */
-    .voice-avatar .ripple-1,
-    .voice-avatar .ripple-2,
-    .voice-avatar .ripple-3 {
+    .voice-avatar-container .ripple-1,
+    .voice-avatar-container .ripple-2,
+    .voice-avatar-container .ripple-3 {
         content: "";
         position: absolute;
         border: 2px solid rgba(255, 255, 255, 0.6);
@@ -176,6 +173,27 @@ const props = defineProps<{
         width: 10rem;
         height: 10rem;
 
+        &.speaking {
+            animation: none;
+            transform-origin: center;
+            will-change: transform;
+
+            .ripple-1 {
+                animation: rippleWave 2s linear infinite;
+                animation-delay: 0.4s;
+            }
+
+            .ripple-2 {
+                animation: rippleWave 2s linear infinite;
+                animation-delay: 1.2s;
+            }
+
+            .ripple-3 {
+                animation: rippleWave 2s linear infinite;
+                animation-delay: 2.4s;
+            }
+        }
+
         .voice-avatar {
             position: relative;
             overflow: visible;
@@ -184,27 +202,7 @@ const props = defineProps<{
             border-radius: 10%;
             box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
             transition: all 0.1s ease-in-out;
-
-            &.speaking {
-                animation: none;
-                transform-origin: center;
-                will-change: transform;
-
-                .ripple-1 {
-                    animation: rippleWave 2s linear infinite;
-                    animation-delay: 0s;
-                }
-
-                .ripple-2 {
-                    animation: rippleWave 2s linear infinite;
-                    animation-delay: 0.8s;
-                }
-
-                .ripple-3 {
-                    animation: rippleWave 2s linear infinite;
-                    animation-delay: 1.6s;
-                }
-            }
+            z-index: 2;
 
             img {
                 width: 100%;
