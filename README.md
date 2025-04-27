@@ -127,10 +127,10 @@ python main.py
 │       │   ├── VoiceCall               # 语音通话组件
 │       │   ├── InputField              # 输入框组件
 │       │   └── ChatContainer           # 聊天容器组件
-│       ├── services                 # 组合式函数
-│       │   ├── useWebSocket            # WebSocket 相关逻辑
-│       │   ├── useVoiceState           # 语音状态管理
-│       │   └── useVoiceAnimation       # 语音动画效果
+│       ├── services                    # 组合式函数
+│       │   ├── WebSocketService        # WebSocket 相关逻辑
+│       │   ├── VoiceStateManager       # 语音状态管理
+│       │   └── VoiceAnimationManager   # 语音动画效果
 │       ├── stores                      # 状态管理
 │       ├── types                       # 类型定义
 │       ├── utils                       # 工具函数
@@ -144,7 +144,7 @@ python main.py
 ## 技术栈
 
 ### 前端
-- Vue 3
+- Vue3
 - TypeScript
 - Pinia
 - WebSocket
