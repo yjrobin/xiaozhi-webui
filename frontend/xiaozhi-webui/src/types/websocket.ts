@@ -1,4 +1,3 @@
-// types/websocket.ts
 export interface WebSocketMessage {
     type: 'hello' | 'stt' | 'llm' | 'tts'
     state?: 'start' | 'stop' | 'detect' | 'sentence_start' | 'sentence_end'

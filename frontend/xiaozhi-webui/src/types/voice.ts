@@ -5,7 +5,6 @@ export type VoiceEventType =
     | 'aiStopSpeaking'
     | 'userAudioLevelChange'
     | 'aiAudioLevelChange'
-    | 'idleEnter'
     | 'stateChange'
 
 export type VoiceEventHandler = (data?: any) => void;

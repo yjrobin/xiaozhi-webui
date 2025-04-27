@@ -13,7 +13,6 @@ const props = defineProps<{
 </script>
 
 <template>
-
     <div class="phone-call-container" :class="{ active: props.isVisible }">
         <div class="voice-avatar-container" :class="{ speaking: props.voiceStateManager.currentState.value === VoiceState.AI_SPEAKING }">
             <div class="voice-avatar" :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }">

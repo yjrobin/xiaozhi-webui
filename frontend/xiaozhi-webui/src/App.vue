@@ -177,7 +177,7 @@ const voiceStateManager = new VoiceStateManager({
     USER_INTERRUPT_AI: 0.08
   },
   timeout: {
-    SILENCE: 2000
+    SILENCE: 1000
   },
   callbacks: {
     sendAudioData(data: Float32Array) {
@@ -281,7 +281,7 @@ const closeVoiceCallPanel = async () => {
     clearInterval(animationCheckInterval);
     animationCheckInterval = null;
   }
-  await clearMediaResources();
+  clearMediaResources();
 };
 
 /**
@@ -354,7 +354,7 @@ const prepareMediaResources = async () => {
   audioStream.getTracks().forEach((track) => (track.enabled = true));
 };
 
-const clearMediaResources = async () => {
+const clearMediaResources = () => {
   audioQueue.value = [];
 
   if (audioStream) {
@@ -374,12 +374,6 @@ const clearMediaResources = async () => {
     console.log("[App][clearMediaResources] processorNode closed");
   }
 };
-
-onUnmounted(async () => {
-  console.log("[App][onUnmounted] Clearing resources...");
-  await clearMediaResources();
-  voiceStateManager.destroy();
-});
 // ---------- 语音通话 end ----------------
 
 
@@ -412,11 +406,16 @@ onMounted(async () => {
   await settingStore.fetchConfig();
   wsService.connect();
 });
+
+onUnmounted(() => {
+  console.log("[App][onUnmounted] Clearing resources...");
+  clearMediaResources();
+  voiceStateManager.destroy();
+});
 </script>
 
 <template>
   <div class="app-container">
-
     <Header :connection-status="wsService.connectionStatus.value" />
     <ChatContainer class="chat-container" ref="chatContainerRef" />
     <InputField
@@ -426,14 +425,12 @@ onMounted(async () => {
       :ws-service="wsService"
     />
     <SettingPanel :class="{ settingPanelVisible: settingStore.visible }" />
-
     <VoiceCall
       :voice-animation-manager="voiceAnimationManager"
       :voice-state-manager="voiceStateManager"
       :is-visible="isVoiceCallVisible"
       :on-close="closeVoiceCallPanel"
     />
-
   </div>
 </template>
 
