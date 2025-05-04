@@ -1,8 +1,12 @@
 # xiaozhi-webui
 
+> 本项目供学习交流使用，如果有问题欢迎联系 zamyang@qq.com
+
 ## 项目简介
 
-xiaozhi-webui 是一个使用 Python + Vue3 实现的小智语音 Web 端，旨在通过代码学习和在没有硬件条件下体验 AI 小智的对话功能。
+声明："小智" 项目起源于 [虾哥](https://github.com/78/xiaozhi-esp32) 之手。
+
+本项目 xiaozhi-webui 是一个使用 Python + Vue3 实现的小智语音 Web 端，旨在通过代码学习和在没有硬件条件下体验 AI 小智的对话功能。
 
 本仓库使用 Vue3 对 [xiaozhi-web-client](https://github.com/TOM88812/xiaozhi-web-client) 进行重构，并在此基础上优化和拓展。
 
@@ -161,6 +165,8 @@ python main.py
 欢迎提交 Issues 和 Pull Requests！
 
 ## 感谢以下开源/分享人员-排名不分前后
+
+[虾哥](https://github.com/78)
 
 [Huang-junsen](https://github.com/Huang-junsen)
 
