@@ -158,7 +158,6 @@ class WebSocketProxy:
 
     def _update_ota_address(self):
         MAC_ADDR = get_mac_address()
-        OTA_VERSION_URL = self.ota_version_url
 
         headers = {"Device-Id": MAC_ADDR, "Content-Type": "application/json"}
 
@@ -189,7 +188,7 @@ class WebSocketProxy:
         try:
             # 发送请求到OTA服务器
             response = requests.post(
-                OTA_VERSION_URL,
+                self.ota_version_url,
                 headers=headers,
                 json=payload,
                 timeout=10,  # 设置超时时间，防止请求卡死
