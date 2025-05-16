@@ -14,14 +14,17 @@ const handleQuit = () => {
         <div class="setting-content">
             <h2>设置</h2>
             <div style="display: flex; flex-direction: column">
+                <label>OTA地址</label>
+                <input v-model="settingStore.otaVersionURL" type="text"
+                    placeholder="例如: https://api.tenclass.net/xiaozhi/ota/" />
+            </div>
+            <div style="display: flex; flex-direction: column">
                 <label>远程服务器地址</label>
-                <input v-model="settingStore.wsURL" type="text" placeholder="例如: wss://api.domain.cn/xiaozhi/v1/"
-                    ref="WSURL" />
+                <input v-model="settingStore.wsURL" type="text" placeholder="例如: wss://api.domain.cn/xiaozhi/v1/" />
             </div>
             <div style="display: flex; flex-direction: column">
                 <label>本地代理地址</label>
-                <input v-model="settingStore.wsProxyURL" type="text" placeholder="例如: ws://localhost:5000"
-                    ref="WSProxyURL" />
+                <input v-model="settingStore.wsProxyURL" type="text" placeholder="例如: ws://localhost:5000" />
             </div>
             <div style="display: flex; flex-direction: column">
                 <div style="

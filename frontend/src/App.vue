@@ -403,7 +403,11 @@ import InputField from "./components/InputField.vue";
 import ChatContainer from './components/ChatContainer.vue';
 
 onMounted(async () => {
-  await settingStore.fetchConfig();
+  const loaded = await settingStore.loadFromLocal();
+  if (!loaded) {
+    console.log("[App][onMounted] 未发现本地配置，正在获取服务器默认配置");
+    await settingStore.fetchConfig();
+  }
   wsService.connect();
 });
 
@@ -418,19 +422,11 @@ onUnmounted(() => {
   <div class="app-container">
     <Header :connection-status="wsService.connectionStatus.value" />
     <ChatContainer class="chat-container" ref="chatContainerRef" />
-    <InputField
-      :abort-playing-and-clean="abortPlayingAndClean"
-      :show-voice-call-panel="showVoiceCallPanel"
-      :voice-state-manager="voiceStateManager"
-      :ws-service="wsService"
-    />
+    <InputField :abort-playing-and-clean="abortPlayingAndClean" :show-voice-call-panel="showVoiceCallPanel"
+      :voice-state-manager="voiceStateManager" :ws-service="wsService" />
     <SettingPanel :class="{ settingPanelVisible: settingStore.visible }" />
-    <VoiceCall
-      :voice-animation-manager="voiceAnimationManager"
-      :voice-state-manager="voiceStateManager"
-      :is-visible="isVoiceCallVisible"
-      :on-close="closeVoiceCallPanel"
-    />
+    <VoiceCall :voice-animation-manager="voiceAnimationManager" :voice-state-manager="voiceStateManager"
+      :is-visible="isVoiceCallVisible" :on-close="closeVoiceCallPanel" />
   </div>
 </template>
 
