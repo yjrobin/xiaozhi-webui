@@ -11,14 +11,12 @@ class ConfigManager:
 
     def __init__(self):
         self._default_config = {
-            "OTA_VERSION_URL": "https://api.tenclass.net/xiaozhi/ota/",
             "WS_URL": "wss://api.tenclass.net/xiaozhi/v1/",
+            "WS_PROXY_URL": "ws://localhost:5000",
+            "OTA_VERSION_URL": "https://api.tenclass.net/xiaozhi/ota/",
             "TOKEN_ENABLE": "true",
-            "DEVICE_TOKEN": "test_token",
-            "PROXY_HOST": "localhost",
-            "PROXY_PORT": "5000",
-            "BACKEND_HOST": "localhost",
-            "BACKEND_PORT": "8081",
+            "TOKEN": "test_token",
+            "BACKEND_URL": "http://localhost:8081",
         }
         self._config = None
         self._init_config()

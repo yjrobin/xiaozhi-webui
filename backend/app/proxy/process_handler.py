@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 from .websocket_proxy import WebSocketProxy
 from ..config import configuration
 import asyncio
@@ -18,8 +19,8 @@ def run_proxy():
         client_id=configuration.get("CLIENT_ID"),
         websocket_url=configuration.get("WS_URL"),
         ota_version_url=configuration.get("OTA_VERSION_URL"),
-        proxy_host=configuration.get("PROXY_HOST"),
-        proxy_port=configuration.get("PROXY_PORT"),
+        proxy_host=urlparse(configuration.get("WS_PROXY_URL")).hostname,
+        proxy_port=urlparse(configuration.get("WS_PROXY_URL")).port,
         token_enable=configuration.get("TOKEN_ENABLE"),
         token=configuration.get("DEVICE_TOKEN"),
     )

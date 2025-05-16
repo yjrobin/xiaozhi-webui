@@ -8,17 +8,13 @@ import sys
 from ..libs.device import get_mac_address, get_local_ip
 import requests
 from ..libs.logger import get_logger
-
-logger = get_logger(__name__)
-
-# 加载环境变量
 from dotenv import load_dotenv
-
-load_dotenv()
 
 # 在导入 opuslib 之前 windows 需要手动加载 opus.dll 动态链接库
 from ..libs.system_info import setup_opus
 
+load_dotenv()
+logger = get_logger(__name__)
 setup_opus()
 try:
     import opuslib
@@ -87,7 +83,6 @@ class AudioProcessor:
         self.buffer = np.array([], dtype=np.float32)
 
     def process_audio(self, input_data: bytes) -> list[bytes]:
-
         # 将输入数据转换为 float32 数组
         input_array = np.frombuffer(input_data, dtype=np.float32)
 
@@ -98,7 +93,6 @@ class AudioProcessor:
 
         # 当缓冲区达到指定大小时处理数据
         while len(self.buffer) >= self.buffer_size:
-
             # 提取数据
             chunk = self.buffer[: self.buffer_size]
             self.buffer = self.buffer[self.buffer_size :]
@@ -205,10 +199,12 @@ class WebSocketProxy:
 
             # 确保"mqtt"信息存在
             if "mqtt" in response_data:
-                logger.info("MQTT 信息已更新.")
+                logger.info(f"MQTT 信息已更新: {response_data}")
                 return response_data["mqtt"]
             else:
-                logger.error("OTA 服务器返回的数据无效: 没有 MQTT 信息.")
+                logger.error(
+                    f"OTA 服务器返回的数据无效: 没有 MQTT 信息: {response_data}"
+                )
                 raise ValueError(
                     "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址！"
                 )
@@ -366,7 +362,6 @@ class WebSocketProxy:
                                 # Wave 头 + 32000 个音频采样数据 = 64044 字节
                                 # 一句简短的话一般为 64KB 的 Wave 音频文件
                                 if len(self.audio_buffer) >= 64044:
-
                                     # 更新 Wave 头中的元数据
                                     chunk_size = (self.total_samples * 2 + 36).to_bytes(
                                         4, "little"

@@ -1,9 +1,9 @@
+from typing import Optional
 from fastapi import APIRouter
 from ..config import configuration
 from ..constant.repsonse import BaseResponse
 from ..libs.logger import get_logger
-from pydantic import BaseModel
-from urllib.parse import urlparse
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/config", tags=["config"])
 logger = get_logger(__name__)
@@ -12,28 +12,31 @@ logger = get_logger(__name__)
 class GetConfigResponse(BaseResponse):
     data: dict[str, str | int | bool]
 
+
 @router.get("", summary="获取配置信息", response_model=GetConfigResponse)
 def get_config():
     """获取配置信息"""
     logger.info("配置信息: ", configuration.get_config())
     data = {
         "ws_url": configuration.get("WS_URL"),
-        "ws_proxy_url": f"ws://{configuration.get("PROXY_HOST")}:{configuration.get("PROXY_PORT")}",
+        "ws_proxy_url": configuration.get("WS_PROXY_URL"),
+        "ota_version_url": configuration.get("OTA_VERSION_URL"),
         "token_enable": configuration.get("TOKEN_ENABLE"),
+        "token": configuration.get("TOKEN"),
         "device_id": configuration.get("DEVICE_ID"),
         "code": 0,
     }
-    if configuration.get("TOKEN_ENABLE"):
-        data["token"] = configuration.get("DEVICE_TOKEN")
-
     return {"message": "配置文件获取成功", "code": 0, "data": data}
 
 
 class ConfigData(BaseModel):
-    ws_url: str
-    ws_proxy_url: str
-    token_enable: bool
-    token: str
+    ws_url: Optional[str] = Field(description="WebSocket连接地址", default="")
+    ws_proxy_url: Optional[str] = Field(description="WebSocket代理地址", default="")
+    token_enable: Optional[bool] = Field(
+        description="请求中是否携带Token", default=False
+    )
+    token: Optional[str] = Field(description="设备Token", default="")
+    ota_version_url: Optional[str] = Field(description="OTA版本地址", default="")
 
 
 @router.put("", summary="更新配置", response_model=BaseResponse)
@@ -41,12 +44,10 @@ def update_config(data: ConfigData):
     """保存配置信息"""
     logger.info(f"配置信息: {data}")
     try:
-        configuration.set("WS_URL", data.ws_url)
-        configuration.set("PROXY_HOST", urlparse(data.ws_proxy_url).hostname)
-        configuration.set("PROXY_PORT", urlparse(data.ws_proxy_url).port)
-        configuration.set("TOKEN_ENABLE", data.token_enable)
-        if data.token_enable:
-            configuration.set("DEVICE_TOKEN", data.token)
+        for key, value in data.model_dump().items():
+            if value != "" and value:
+                logger.info(f"key: {key}, value: {value}")
+                configuration.set(key, value)
         configuration.save_config()
         logger.info("配置信息更新成功")
         return {"message": "配置文件更新成功", "code": 0}
