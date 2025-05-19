@@ -47,7 +47,7 @@
 1. 进入项目目录
 
 ```bash
-cd frontend/xiaozhi-webui
+cd frontend
 ```
 
 2. 安装依赖
