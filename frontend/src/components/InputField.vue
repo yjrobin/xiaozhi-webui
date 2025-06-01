@@ -14,12 +14,15 @@ const props = defineProps<{
 
 const message = ref<string>("");
 const isFocused = ref<boolean>(false);
-
 const displayMessage = computed(() => {
     if (!message.value && !isFocused.value) {
         return '请输入消息...'
     }
 })
+
+const clearInputField = () => {
+    message.value = '';
+};
 
 const onInput = (e: Event) => {
     message.value = (e.target as HTMLDivElement).innerText;
@@ -29,7 +32,7 @@ const handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === "Enter" && message.value) {
         e.preventDefault();
         sendMessage(message.value);
-        message.value = "";
+        clearInputField();
         const messageInput = document.getElementById('messageInput');
         if (messageInput) {
             messageInput.innerText = "";
@@ -37,9 +40,17 @@ const handleKeyPress = (e: KeyboardEvent) => {
     }
 };
 
+const handleSendButtonClick = () => {
+    sendMessage(message.value);
+    clearInputField();
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.innerText = "";
+    }
+};
+
 // 客户端发送消息至服务端代理
 function sendMessage(text: string) {
-    // 发送文本消息
     const textMessage = JSON.stringify({
         type: "listen",
         state: "detect",
@@ -61,7 +72,7 @@ function sendMessage(text: string) {
         <div id="messageInput" contenteditable="true" @input="onInput" @keydown="handleKeyPress"
             @focus="isFocused = true" @blur="isFocused = false">{{ displayMessage }}
         </div>
-        <button id="send-message" @click="sendMessage(message)">
+        <button id="send-message" @click="handleSendButtonClick">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd"
                     d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
@@ -123,6 +134,7 @@ function sendMessage(text: string) {
         color: white;
         border: none;
         border-radius: 0.8rem;
+        cursor: pointer;
     }
 
     #send-message {

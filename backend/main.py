@@ -24,7 +24,7 @@ if __name__ == "__main__":
     proxy_process = multiprocessing.Process(target=run_proxy, name="ProxyProcess")
     proxy_process.start()
     logger.info(
-        f"代理服务器已启动: {configuration.get('PROXY_HOST')}:{configuration.get('PROXY_PORT')}"
+        f"代理服务器已启动: {configuration.get('WS_PROXY_URL')}, PID: {proxy_process.pid}"
     )
 
     # 启动 FastAPI 服务器

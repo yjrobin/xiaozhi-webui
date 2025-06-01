@@ -39,9 +39,13 @@ export const useSettingStore = defineStore('setting', () => {
       Object.entries(configMap).forEach(([key, ref]) => {
         const value = (data as ConfigData)[key]
         if (value !== undefined && value !== null) {
-          ref.value = value
           if (key === 'device_id') {
             console.log("[useSettingStore][fetchConfig] device_id: ", value)
+          }
+          if (key === 'ws_proxy_url' && typeof value === 'string') {
+            ref.value = 'ws://localhost' + value.substring(value.lastIndexOf(':'))
+          } else {
+            ref.value = value
           }
         }
       })

@@ -401,12 +401,16 @@ import SettingPanel from './components/Setting/index.vue'
 import VoiceCall from "./components/VoiceCall.vue";
 import InputField from "./components/InputField.vue";
 import ChatContainer from './components/ChatContainer.vue';
+import { ElMessage } from 'element-plus';
 
 onMounted(async () => {
   const loaded = await settingStore.loadFromLocal();
   if (!loaded) {
     console.log("[App][onMounted] 未发现本地配置，正在获取服务器默认配置");
     await settingStore.fetchConfig();
+    ElMessage.warning("未发现本地配置，默认配置已加载")
+  } else {
+    ElMessage.success("本地配置加载成功");
   }
   wsService.connect();
 });

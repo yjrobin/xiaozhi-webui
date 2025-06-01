@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { useSettingStore } from "../../stores/setting";
+import { ElMessage } from "element-plus";
 
 const settingStore = useSettingStore();
 
 const handleQuit = () => {
     settingStore.visible = false;
     settingStore.saveToLocal();
+    ElMessage.success("设置已保存");
 };
 </script>
 
