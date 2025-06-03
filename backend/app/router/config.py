@@ -1,5 +1,6 @@
 from typing import Optional
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from ..config import configuration
 from ..constant.repsonse import BaseResponse
 from ..libs.logger import get_logger
@@ -15,7 +16,6 @@ class GetConfigResponse(BaseResponse):
 
 @router.get("", summary="获取配置信息", response_model=GetConfigResponse)
 def get_config():
-    """获取配置信息"""
     logger.info("配置信息: ", configuration.get_config())
     data = {
         "ws_url": configuration.get("WS_URL"),
@@ -26,7 +26,10 @@ def get_config():
         "device_id": configuration.get("DEVICE_ID"),
         "code": 0,
     }
-    return {"message": "配置文件获取成功", "code": 0, "data": data}
+    return JSONResponse(
+        content={"message": "配置文件获取成功", "code": 0, "data": data},
+        status_code=200,
+    )
 
 
 class ConfigData(BaseModel):
@@ -41,7 +44,6 @@ class ConfigData(BaseModel):
 
 @router.put("", summary="更新配置", response_model=BaseResponse)
 def update_config(data: ConfigData):
-    """保存配置信息"""
     logger.info(f"配置信息: {data}")
     try:
         for key, value in data.model_dump().items():
@@ -50,7 +52,12 @@ def update_config(data: ConfigData):
                 configuration.set(key, value)
         configuration.save_config()
         logger.info("配置信息更新成功")
-        return {"message": "配置文件更新成功", "code": 0}
+        return JSONResponse(
+            content={"message": "配置文件更新成功", "code": 0}, status_code=200
+        )
     except Exception as e:
         logger.error(f"配置信息更新失败: {e}")
-        return {"message": f"配置文件更新失败: {str(e)}", "code": 1}
+        return JSONResponse(
+            content={"message": f"配置文件更新失败: {str(e)}", "code": 1},
+            status_code=500,
+        )
