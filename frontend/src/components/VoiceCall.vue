@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import { defineProps } from 'vue';
-import { VoiceState } from '@/types/voice';
+import { ChatState } from '@/types/chat';
 import type { VoiceAnimationManager } from '@/services/VoiceAnimationManager';
-import type { VoiceStateManager } from '@/services/VoiceStateManager';
+import type { ChatStateManager } from '@/services/ChatStateManager';
 
 const props = defineProps<{
     isVisible: boolean;
     voiceAnimationManager: VoiceAnimationManager;
-    voiceStateManager: VoiceStateManager;
+    chatStateManager: ChatStateManager;
     onClose: () => void;
 }>();
 </script>
 
 <template>
     <div class="phone-call-container" :class="{ active: props.isVisible }">
-        <div class="voice-avatar-container" :class="{ speaking: props.voiceStateManager.currentState.value === VoiceState.AI_SPEAKING }">
+        <div class="voice-avatar-container" :class="{ speaking: props.chatStateManager.currentState.value === ChatState.AI_SPEAKING }">
             <div class="voice-avatar" :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }">
                 <img src="/avatar.jpg" alt="小智头像" />
             </div>
@@ -22,7 +22,7 @@ const props = defineProps<{
         </div>
         <div class="voice-wave-container">
             <div class="voice-wave"
-                :class="{ active: props.voiceStateManager.currentState.value === VoiceState.USER_SPEAKING }"
+                :class="{ active: props.chatStateManager.currentState.value === ChatState.USER_SPEAKING }"
                 :style="{ '--wave-height': `${voiceAnimationManager.voiceWaveHeight.value}px` }">
                 <div v-for="i in 10" :key="i" class="wave-line"></div>
             </div>

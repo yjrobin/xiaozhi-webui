@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { ref, computed, defineProps } from 'vue';
-import { VoiceState } from '@/types/voice';
-import type { VoiceStateManager } from '@/services/VoiceStateManager';
+import { ChatState } from '@/types/chat';
+import type { ChatStateManager } from '@/services/ChatStateManager';
 import type { WebSocketService } from '@/services/WebSocketService';
 
 const props = defineProps<{
-    voiceStateManager: VoiceStateManager;
+    chatStateManager: ChatStateManager;
     wsService: WebSocketService;
     abortPlayingAndClean: () => void;
     showVoiceCallPanel: () => void;
@@ -58,7 +58,7 @@ function sendMessage(text: string) {
         source: "text",
     });
 
-    if (props.voiceStateManager.currentState.value == VoiceState.AI_SPEAKING) {
+    if (props.chatStateManager.currentState.value == ChatState.AI_SPEAKING) {
         props.abortPlayingAndClean();
     }
     props.wsService.sendTextMessage(textMessage)

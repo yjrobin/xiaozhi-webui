@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useSettingStore } from '@/stores/setting'
-import type { WebSocketMessage, AudioParams, WebSocketHandlers } from '@/types/websocket'
+import type { WebSocketMessage } from '@/types/message'
+import type { WebSocketHandlers } from '@/types/websocket'
 
 export class WebSocketService {
     private ws: WebSocket | null = null
@@ -15,10 +16,8 @@ export class WebSocketService {
         this.handlers = handlers
     }
 
-    public connect(): void {
-        const WSProxyURL = this.configStore.wsProxyURL
-        this.ws = new WebSocket(WSProxyURL)
-
+    public connect(url: string | URL): void {
+        this.ws = new WebSocket(url)
         this.ws.onopen = this.handleOpen.bind(this)
         this.ws.onclose = this.handleClose.bind(this)
         this.ws.onerror = this.handleError.bind(this)
@@ -53,7 +52,7 @@ export class WebSocketService {
     }
 
     private handleOpen(): void {
-        console.log("[WebSocketService] Connected to server:", this.configStore.wsProxyURL)
+        console.log("[WebSocketService] Connected to server", this.configStore.wsProxyUrl)
         this.connectionStatus.value = "connected"
 
         // 发送 Hello 消息
@@ -64,12 +63,12 @@ export class WebSocketService {
     private handleClose(event: CloseEvent): void {
         console.log(`[WebSocketService] Connection closed: ${event.code} ${event.reason}`)
         this.connectionStatus.value = "disconnected"
-        this.configStore.sessionID = ""
+        this.configStore.setSessionId("")
         this.handlers.onDisconnect?.(event)
 
         // 3秒后重连
         this.reconnectTimer = window.setTimeout(() => {
-            this.connect()
+            this.connect(this.configStore.wsProxyUrl)
         }, 3000)
     }
 
@@ -98,7 +97,7 @@ export class WebSocketService {
     private async handleTextMessage(data: any): Promise<void> {
         const message = JSON.parse(data) as WebSocketMessage
         if (message.type === "hello") {
-            this.configStore.sessionID = message.session_id!
+            this.configStore.setSessionId(message.session_id!)
         }
         await this.handlers.onTextMessage?.(message)
     }
@@ -106,14 +105,14 @@ export class WebSocketService {
     private sendHelloMessage(): void {
         const helloMessage = {
             type: "hello",
-            version: 3,
+            version: 1,
             transport: "websocket",
             audio_params: {
                 format: "opus",
-                sample_rate: 16000,
+                sample_rate: 24000,
                 channels: 1,
                 frame_duration: 60,
-            } as AudioParams
+            }
         }
         this.sendTextMessage(helloMessage)
     }

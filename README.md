@@ -133,7 +133,7 @@ python main.py
 │       │   └── ChatContainer           # 聊天容器组件
 │       ├── services                    # 组合式函数
 │       │   ├── WebSocketService        # WebSocket 相关逻辑
-│       │   ├── VoiceStateManager       # 语音状态管理
+│       │   ├── ChatStateManager       # 语音状态管理
 │       │   └── VoiceAnimationManager   # 语音动画效果
 │       ├── stores                      # 状态管理
 │       ├── types                       # 类型定义

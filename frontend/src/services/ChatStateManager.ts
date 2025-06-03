@@ -1,40 +1,40 @@
 import { ref } from "vue";
-import { VoiceState, type VoiceStateConfig, type VoiceStateTransition, type VoiceEventType, type VoiceEventHandler } from "@/types/voice";
+import { ChatState, type ChatStateConfig, type ChatStateTransition, type ChatEventType, type ChatEventHandler } from "@/types/chat";
 
-export class VoiceStateManager {
-    public currentState = ref<VoiceState>(VoiceState.IDLE);
-    public config: VoiceStateConfig;
-    public transitions: Map<VoiceState, VoiceStateTransition>;
-    private eventHandlers: Map<VoiceEventType, VoiceEventHandler[]> = new Map();
+export class ChatStateManager {
+    public currentState = ref<ChatState>(ChatState.IDLE);
+    public config: ChatStateConfig;
+    public transitions: Map<ChatState, ChatStateTransition>;
+    private eventHandlers: Map<ChatEventType, ChatEventHandler[]> = new Map();
     private silenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(config: VoiceStateConfig) {
-        this.transitions = new Map<VoiceState, VoiceStateTransition>();
+    constructor(config: ChatStateConfig) {
+        this.transitions = new Map<ChatState, ChatStateTransition>();
         this.config = config;
         this.initializeTransitions();
     }
 
-    public on(event: VoiceEventType, handler: VoiceEventHandler) {
+    public on(event: ChatEventType, handler: ChatEventHandler) {
         if (!this.eventHandlers.get(event)) {
             this.eventHandlers.set(event, []);
         }
         this.eventHandlers.get(event)!.push(handler);
     }
 
-    public emit(event: VoiceEventType, data?: any) {
+    public emit(event: ChatEventType, data?: any) {
         this.eventHandlers.get(event)?.forEach(handler => handler(data));
     }
 
     private initializeTransitions() {
-        this.transitions.set(VoiceState.IDLE, {
+        this.transitions.set(ChatState.IDLE, {
             handleAudioLevel: (audioLevel: number) => {
                 if (audioLevel > this.config.thresholds.USER_SPEAKING) {
-                    this.setState(VoiceState.USER_SPEAKING);
+                    this.setState(ChatState.USER_SPEAKING);
                 }
             }
         })
 
-        this.transitions.set(VoiceState.USER_SPEAKING, {
+        this.transitions.set(ChatState.USER_SPEAKING, {
             onEnter: () => {
                 this.emit("userStartSpeaking")
             },
@@ -52,8 +52,8 @@ export class VoiceStateManager {
                     if (!this.silenceTimer) {
                         // 用户停止说话 2s 后，切换到 AI_SPEAKING 状态
                         this.silenceTimer = setTimeout(() => {
-                            if (this.currentState.value === VoiceState.USER_SPEAKING) {
-                                this.setState(VoiceState.AI_SPEAKING);
+                            if (this.currentState.value === ChatState.USER_SPEAKING) {
+                                this.setState(ChatState.AI_SPEAKING);
                             }
                             this.silenceTimer = null;
                         }, this.config.timeout.SILENCE);
@@ -67,7 +67,7 @@ export class VoiceStateManager {
             },
         })
 
-        this.transitions.set(VoiceState.AI_SPEAKING, {
+        this.transitions.set(ChatState.AI_SPEAKING, {
             onEnter: () => {
                 this.emit("aiStartSpeaking")
             },
@@ -80,16 +80,16 @@ export class VoiceStateManager {
                     // 通知小智，你被打断了
                     const abortMessage = JSON.stringify({
                         type: "abort",
-                        session_id: this.config.callbacks.getSessionID(),
+                        session_id: this.config.callbacks.getSessionId(),
                     });
                     this.config.callbacks.sendTextData(abortMessage);
-                    this.setState(VoiceState.USER_SPEAKING);
+                    this.setState(ChatState.USER_SPEAKING);
                 }
             },
         })
     }
 
-    public setState(newState: VoiceState) {
+    public setState(newState: ChatState) {
         this.emit("stateChange", newState)
     }
 

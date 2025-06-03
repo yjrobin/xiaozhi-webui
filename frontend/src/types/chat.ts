@@ -1,4 +1,4 @@
-export type VoiceEventType =
+export type ChatEventType =
     | 'userStartSpeaking'
     | 'userStopSpeaking'
     | 'aiStartSpeaking'
@@ -7,17 +7,16 @@ export type VoiceEventType =
     | 'aiAudioLevelChange'
     | 'stateChange'
 
-export type VoiceEventHandler = (data?: any) => void;
+export type ChatEventHandler = (data?: any) => void;
 
-export enum VoiceState {
+export enum ChatState {
     IDLE = "idle",
     AI_SPEAKING = "ai_speaking",
     USER_SPEAKING = "user_speaking",
     INTERRUPTED = 'interrupted'
 }
 
-
-export interface VoiceStateConfig {
+export interface ChatStateConfig {
     thresholds: {
         USER_SPEAKING: number;
         USER_INTERRUPT_AI: number;
@@ -28,12 +27,12 @@ export interface VoiceStateConfig {
     callbacks: {
         sendAudioData: (data: Float32Array) => void;
         sendTextData: (text: string) => void;
-        getSessionID: () => string;
+        getSessionId: () => string;
     }
 }
 
 // 状态转换接口
-export interface VoiceStateTransition {
+export interface ChatStateTransition {
     onEnter?: () => void;
     onExit?: () => void;
     handleAudioLevel: (audioLevel: number, data?: any) => void;

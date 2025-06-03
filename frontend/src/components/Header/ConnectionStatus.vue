@@ -23,7 +23,7 @@ const props = defineProps<{
         <div :class="['connection-status', connectionStatusClass]" ref="connectionState">
             {{ connectionStatusText }}
         </div>
-        <div class="device-id">设备ID：{{ settingStore.deviceID }}</div>
+        <div class="device-id">设备ID：{{ settingStore.deviceId }}</div>
     </div>
 </template>
 

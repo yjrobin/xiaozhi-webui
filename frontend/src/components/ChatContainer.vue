@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
-
-interface Message {
-    type: 'user' | 'server';
-    content: string;
-    time: string;
-}
+import type { Message } from '@/types/message';
 
 const messages = ref<Message[]>([]);
 
-const appendMessage = (type: 'user' | 'server', text: string) => {
+const appendMessage = (type: 'user' | 'ai', text: string) => {
     const now = new Date();
     messages.value.push({
         type,
@@ -52,7 +47,7 @@ defineExpose({
     overflow-y: auto;
     scrollbar-width: none;
 
-    .message.server,
+    .message.ai,
     .message.user {
         .message-content {
             width: max-content;
@@ -72,7 +67,7 @@ defineExpose({
         }
     }
 
-    .message.server {
+    .message.ai {
         margin: 0.5rem 0;
 
         .message-content {

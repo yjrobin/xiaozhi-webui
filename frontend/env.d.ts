@@ -6,7 +6,14 @@ declare module '*.vue' {
   export default component;
 }
 
-// 环境变量类型声明
-interface ImportMetaEnv {
-  VITE_APP_SERVER_URL: string
+declare global {
+  interface ImportMetaEnv {
+    VITE_APP_SERVER_URL: string
+  }
+  interface Window {
+    AudioContext: typeof AudioContext;
+    webkitAudioContext: typeof AudioContext;
+  }
 }
+
+export { };

@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import { useSettingStore } from "./stores/setting";
+import type {
+  HelloResponse,
+  UserEcho,
+  AIResponse_Emotion,
+  AI_TTS_Start,
+  AIResponse_Text
+} from "./types/message";
 
 const settingStore = useSettingStore();
 const chatContainerRef = ref<InstanceType<typeof ChatContainer> | null>(null);
@@ -12,69 +19,72 @@ const wsService = new WebSocketService({
   async onAudioMessage(event) {
     console.log("[WebSocketService][onAudioMessage] audio data received:", event);
     // 如果当前是 USER_SPEAKING 状态，不接收音频数据
-    if (voiceStateManager.currentState.value === VoiceState.USER_SPEAKING) {
+    if (chatStateManager.currentState.value === ChatState.USER_SPEAKING) {
       console.warn("[WebSocketService][onAudioMessage] In interrupted state, discarding old audio data");
       return;
     }
 
-    if (voiceStateManager.currentState.value == VoiceState.AI_SPEAKING) {
+    if (chatStateManager.currentState.value == ChatState.AI_SPEAKING) {
       console.log("[WebSocketService][onAudioMessage] Audio is playing, enqueuing...");
       await enqueueAudio(event);
-    } else if (voiceStateManager.currentState.value == VoiceState.IDLE) {
+    } else if (chatStateManager.currentState.value == ChatState.IDLE) {
       console.log("[WebSocketService][onAudioMessage] Audio is not playing, playing now...");
       await enqueueAudio(event);
       console.log("[WebSocketService][onAudioMessage] Audio is not playing, set ai speaking...");
-      voiceStateManager.setState(VoiceState.AI_SPEAKING);
+      chatStateManager.setState(ChatState.AI_SPEAKING);
     } else {
-      console.warn("[WebSocketService][onAudioMessage] Current state is:", voiceStateManager.currentState.value, ", skip enqueue.");
+      console.warn("[WebSocketService][onAudioMessage] Current state is:", chatStateManager.currentState.value, ", skip enqueue.");
     }
   },
   async onTextMessage(message) {
     console.log("[WebSocketService][onTextmessage] Text message received:", message);
 
-    // WebSocket 握手成功，获取 session_id
-    if (message.type === "hello") {
-      settingStore.sessionID = message.session_id!;
-      console.log("[WebSocketService][onTextmessage] Session ID:", message.session_id);
-    }
-    // 客户端发送的语音在服务端的识别结果
-    else if (message.type === "stt") {
-      if (message.text && message.text.trim() && !message.source) {
-        chatContainerRef.value?.appendMessage("user", message.text);
-      }
-    }
-    // 服务端返回的表情信息
-    else if (message.type === "llm") {
-      if (message.text && message.text.trim()) {
-        chatContainerRef.value?.appendMessage("server", message.text);
-      }
-    }
-    // 服务端返回的文本信息
-    else if (message.type === "tts") {
-      if (message.state == "start") {
-        if (voiceStateManager.currentState.value === VoiceState.USER_SPEAKING) {
-          voiceStateManager.setState(VoiceState.IDLE);
+    switch (message.type) {
+      case "hello":
+        const helloMessage = message as HelloResponse;
+        settingStore.setSessionId(helloMessage.session_id!);
+        console.log("[WebSocketService][onTextmessage] Session ID:", helloMessage.session_id);
+        break;
+
+      case "stt":
+        const sttMessage = message as UserEcho;
+        if (sttMessage.text?.trim()) {
+          chatContainerRef.value?.appendMessage("user", sttMessage.text);
         }
-      } else if (message.state === "sentence_start") {
-        chatContainerRef.value?.appendMessage("server", message.text!);
-      }
+        break;
+
+      case "llm":
+        const emotionMessage = message as AIResponse_Emotion;
+        if (emotionMessage.text?.trim()) {
+          chatContainerRef.value?.appendMessage("ai", emotionMessage.text);
+        }
+        break;
+
+      case "tts":
+        switch (message.state) {
+          case "start":
+            const startMessage = message as AI_TTS_Start;
+            if (chatStateManager.currentState.value === ChatState.USER_SPEAKING) {
+              chatStateManager.setState(ChatState.IDLE);
+            }
+            break;
+          case "sentence_start":
+            const textMessage = message as AIResponse_Text;
+            chatContainerRef.value?.appendMessage("ai", textMessage.text!);
+            break;
+          case "sentence_end":
+            break;
+        }
+        break;
     }
   },
 })
 // ---------- WebSocket 连接相关 end ------------
 
 // ---------- 语音处理相关 start ------------
-declare global {
-  interface Window {
-    AudioContext: typeof AudioContext;
-    webkitAudioContext: typeof AudioContext;
-  }
-}
-
-// 兼容苹果 Safari 浏览器
 const audioContext = new (window.AudioContext || window.webkitAudioContext)({
   sampleRate: 16000,
-});
+}); // 兼容苹果 Safari 浏览器
 const audioQueue = ref<AudioBuffer[]>([]);
 
 let animationCheckInterval: number | null = null;
@@ -89,7 +99,7 @@ const abortPlayingAndClean = (): void => {
   // 通知小智，你被打断了
   const abortMessage = {
     type: "abort",
-    session_id: settingStore.sessionID,
+    session_id: settingStore.sessionId,
   };
   wsService.sendTextMessage(abortMessage)
 };
@@ -112,7 +122,7 @@ const enqueueAudio = async (blob: Blob): Promise<void> => {
 const playQueuedAudio = async () => {
   if (audioQueue.value.length === 0) {
     console.log("[App][playQueuedAudio] Audio queue is empty.");
-    voiceStateManager.setState(VoiceState.IDLE);
+    chatStateManager.setState(ChatState.IDLE);
     return;
   }
 
@@ -143,7 +153,7 @@ const playQueuedAudio = async () => {
       if (isVoiceCallVisible.value) {
         analyser.getFloatTimeDomainData(dataArray);
         const audioLevel = detectAudioLevel(dataArray);
-        voiceStateManager.handleAIAudioLevel(audioLevel);
+        chatStateManager.handleAIAudioLevel(audioLevel);
       }
     }, 100);
 
@@ -168,10 +178,11 @@ const playQueuedAudio = async () => {
 
 
 // ---------- 语音通话 start --------------
-import { VoiceStateManager } from "./services/VoiceStateManager";
-import { VoiceState } from "./types/voice";
+import { ChatStateManager } from "./services/ChatStateManager.ts";
+import { ChatState } from "./types/chat.ts";
+import type { AIListening_Start, AIListening_Stop } from "./types/message";
 
-const voiceStateManager = new VoiceStateManager({
+const chatStateManager = new ChatStateManager({
   thresholds: {
     USER_SPEAKING: 0.04,
     USER_INTERRUPT_AI: 0.08
@@ -186,8 +197,8 @@ const voiceStateManager = new VoiceStateManager({
     sendTextData(text: string) {
       wsService.sendTextMessage(text);
     },
-    getSessionID() {
-      return settingStore.sessionID;
+    getSessionId() {
+      return settingStore.sessionId;
     }
   }
 })
@@ -198,37 +209,35 @@ let processorNode: AudioWorkletNode | null = null;
 let userMediaNode: MediaStreamAudioSourceNode | null = null;
 let source: AudioBufferSourceNode | null = null;
 
-voiceStateManager.on("userStartSpeaking", async () => {
+chatStateManager.on("userStartSpeaking", async () => {
   // 停止 ai 的讲话
   source?.disconnect();
   source?.stop();
   source = null;
   audioQueue.value = [];
 
-  // 发送开始录音信号
-  const startMessage = JSON.stringify({
+  const aiStartListening: AIListening_Start = {
     type: "listen",
     state: "start",
     mode: "auto",
-  });
-  wsService.sendTextMessage(startMessage)
+  };
+  wsService.sendTextMessage(aiStartListening)
 })
 
-voiceStateManager.on("userStopSpeaking", () => {
-  // 发送停止信号
-  const stopMessage = JSON.stringify({
+chatStateManager.on("userStopSpeaking", () => {
+  const aiStopListening: AIListening_Stop = {
     type: "listen",
     state: "stop",
     mode: "auto",
-  });
-  wsService.sendTextMessage(stopMessage);
+  };
+  wsService.sendTextMessage(aiStopListening);
 })
 
-voiceStateManager.on("aiStartSpeaking", () => {
+chatStateManager.on("aiStartSpeaking", () => {
   playQueuedAudio();
 })
 
-voiceStateManager.on("aiStopSpeaking", () => {
+chatStateManager.on("aiStopSpeaking", () => {
   if (source) {
     source.onended = () => { };
   }
@@ -238,24 +247,24 @@ voiceStateManager.on("aiStopSpeaking", () => {
   }
 })
 
-voiceStateManager.on("stateChange", (newState: VoiceState) => {
-  const oldState = voiceStateManager.currentState.value;
-  const oldTransition = voiceStateManager.transitions.get(oldState);
-  const newTransition = voiceStateManager.transitions.get(newState);
+chatStateManager.on("stateChange", (newState: ChatState) => {
+  const oldState = chatStateManager.currentState.value;
+  const oldTransition = chatStateManager.transitions.get(oldState);
+  const newTransition = chatStateManager.transitions.get(newState);
 
   oldTransition?.onExit?.();
-  if (newState == VoiceState.IDLE && audioQueue.value.length > 0) {
-    voiceStateManager.currentState.value = VoiceState.AI_SPEAKING;
-    console.log("[VoiceStateManager][stateChange] State changed from", oldState, "to ai_speaking")
+  if (newState == ChatState.IDLE && audioQueue.value.length > 0) {
+    chatStateManager.currentState.value = ChatState.AI_SPEAKING;
+    console.log("[ChatStateManager][stateChange] State changed from", oldState, "to ai_speaking")
   } else if (oldState == newState) {
-    console.log("[VoiceStateManager][stateChange] State", oldState, "not changed")
+    console.log("[ChatStateManager][stateChange] State", oldState, "not changed")
     return;
   } else {
-    if (newState == VoiceState.IDLE) {
+    if (newState == ChatState.IDLE) {
       voiceAnimationManager.updateAIWave(0);
     }
-    voiceStateManager.currentState.value = newState;
-    console.log("[VoiceStateManager][stateChange] State changed from", oldState, "to", newState)
+    chatStateManager.currentState.value = newState;
+    console.log("[ChatStateManager][stateChange] State changed from", oldState, "to", newState)
   }
   newTransition?.onEnter?.();
 })
@@ -263,8 +272,8 @@ voiceStateManager.on("stateChange", (newState: VoiceState) => {
 const showVoiceCallPanel = async () => {
   isVoiceCallVisible.value = true;
 
-  if (voiceStateManager.currentState.value != VoiceState.IDLE) {
-    voiceStateManager.setState(VoiceState.IDLE);
+  if (chatStateManager.currentState.value != ChatState.IDLE) {
+    chatStateManager.setState(ChatState.IDLE);
   }
 
   await prepareMediaResources();
@@ -309,7 +318,7 @@ const prepareMediaResources = async () => {
   // 初始化音频流
   audioStream = await navigator.mediaDevices.getUserMedia({
     audio: {
-      sampleRate: 16000,
+      sampleRate: 24000,
       channelCount: 1,
       echoCancellation: true,
       noiseSuppression: true,
@@ -344,7 +353,7 @@ const prepareMediaResources = async () => {
     }
     const audioLevel = detectAudioLevel(e.data);
     console.log("[App][processorNode.port.onmessage] Audio Level:", audioLevel.toFixed(2));
-    voiceStateManager.handleUserAudioLevel(audioLevel, e.data);
+    chatStateManager.handleUserAudioLevel(audioLevel, e.data);
   };
   if (!audioStream || !userMediaNode || !processorNode) {
     console.log("[App][connectMediaResources] Resources not ready.");
@@ -382,15 +391,15 @@ import { VoiceAnimationManager } from "./services/VoiceAnimationManager";
 
 const voiceAnimationManager = new VoiceAnimationManager();
 
-voiceStateManager.on("userAudioLevelChange", (audioLevel: number) => {
-  if (voiceStateManager.currentState.value === VoiceState.USER_SPEAKING
-    && audioLevel > voiceStateManager.config.thresholds.USER_SPEAKING) {
+chatStateManager.on("userAudioLevelChange", (audioLevel: number) => {
+  if (chatStateManager.currentState.value === ChatState.USER_SPEAKING
+    && audioLevel > chatStateManager.config.thresholds.USER_SPEAKING) {
     voiceAnimationManager.updateUserWave(audioLevel);
   }
 });
 
-voiceStateManager.on("aiAudioLevelChange", (audioLevel: number) => {
-  if (voiceStateManager.currentState.value === VoiceState.AI_SPEAKING) {
+chatStateManager.on("aiAudioLevelChange", (audioLevel: number) => {
+  if (chatStateManager.currentState.value === ChatState.AI_SPEAKING) {
     voiceAnimationManager.updateAIWave(audioLevel);
   }
 });
@@ -404,21 +413,23 @@ import ChatContainer from './components/ChatContainer.vue';
 import { ElMessage } from 'element-plus';
 
 onMounted(async () => {
-  const loaded = await settingStore.loadFromLocal();
+  const loaded = settingStore.loadFromLocal();
   if (!loaded) {
-    console.log("[App][onMounted] 未发现本地配置，正在获取服务器默认配置");
+    console.log("[App][onMounted] 未发现本地配置，正在获取默认配置");
     await settingStore.fetchConfig();
+    settingStore.saveToLocal();
     ElMessage.warning("未发现本地配置，默认配置已加载")
   } else {
     ElMessage.success("本地配置加载成功");
   }
-  wsService.connect();
+  const wsProxyUrl = settingStore.wsProxyUrl;
+  wsService.connect(wsProxyUrl);
 });
 
 onUnmounted(() => {
   console.log("[App][onUnmounted] Clearing resources...");
   clearMediaResources();
-  voiceStateManager.destroy();
+  chatStateManager.destroy();
 });
 </script>
 
@@ -427,9 +438,9 @@ onUnmounted(() => {
     <Header :connection-status="wsService.connectionStatus.value" />
     <ChatContainer class="chat-container" ref="chatContainerRef" />
     <InputField :abort-playing-and-clean="abortPlayingAndClean" :show-voice-call-panel="showVoiceCallPanel"
-      :voice-state-manager="voiceStateManager" :ws-service="wsService" />
+      :chat-state-manager="chatStateManager" :ws-service="wsService" />
     <SettingPanel :class="{ settingPanelVisible: settingStore.visible }" />
-    <VoiceCall :voice-animation-manager="voiceAnimationManager" :voice-state-manager="voiceStateManager"
+    <VoiceCall :voice-animation-manager="voiceAnimationManager" :chat-state-manager="chatStateManager"
       :is-visible="isVoiceCallVisible" :on-close="closeVoiceCallPanel" />
   </div>
 </template>
