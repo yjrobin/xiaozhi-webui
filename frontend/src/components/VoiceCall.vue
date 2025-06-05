@@ -8,27 +8,32 @@ const props = defineProps<{
     isVisible: boolean;
     voiceAnimationManager: VoiceAnimationManager;
     chatStateManager: ChatStateManager;
-    onClose: () => void;
+}>();
+
+const emit = defineEmits<{
+    (e: 'onShutDown'): void;
 }>();
 </script>
 
 <template>
     <div class="phone-call-container" :class="{ active: props.isVisible }">
-        <div class="voice-avatar-container" :class="{ speaking: props.chatStateManager.currentState.value === ChatState.AI_SPEAKING }">
-            <div class="voice-avatar" :style="{ transform: `scale(${props.voiceAnimationManager.avatarScale.value})` }">
+        <div class="voice-avatar-container">
+            <div class="voice-avatar" :class="{ speaking: props.chatStateManager.currentState.value === ChatState.AI_SPEAKING }">
                 <img src="/avatar.jpg" alt="小智头像" />
             </div>
             <div v-for="i in 3" :key="i" :class="`ripple-${i}`"></div>
         </div>
         <div class="voice-wave-container">
-            <div class="voice-wave"
+            <div 
+                class="voice-wave"
                 :class="{ active: props.chatStateManager.currentState.value === ChatState.USER_SPEAKING }"
-                :style="{ '--wave-height': `${voiceAnimationManager.voiceWaveHeight.value}px` }">
+                :style="{ '--wave-height': `${voiceAnimationManager.voiceWaveHeight.value}px` }"
+            >
                 <div v-for="i in 10" :key="i" class="wave-line"></div>
             </div>
         </div>
         <div class="button-container">
-            <button @click="onClose">
+            <button @click="emit('onShutDown')">
                 <img src="/phone.png" alt="挂断" />
             </button>
         </div>
@@ -97,7 +102,7 @@ const props = defineProps<{
             }
 
             &.active .wave-line {
-                animation: voiceWave 1s ease-in-out infinite;
+                animation: voice-wave 1s ease-in-out infinite;
                 will-change: height, opacity;
 
                 /* 给每个线条不同的动画延迟，创造波浪效果 */
@@ -162,7 +167,6 @@ const props = defineProps<{
         z-index: 1;
     }
 
-    /* 小智头像的涟漪动画 */
     .voice-avatar-container {
         position: relative;
         display: flex;
@@ -171,27 +175,6 @@ const props = defineProps<{
         margin: 100px auto;
         width: 10rem;
         height: 10rem;
-
-        &.speaking {
-            animation: none;
-            transform-origin: center;
-            will-change: transform;
-
-            .ripple-1 {
-                animation: rippleWave 2s linear infinite;
-                animation-delay: 0.4s;
-            }
-
-            .ripple-2 {
-                animation: rippleWave 2s linear infinite;
-                animation-delay: 1.2s;
-            }
-
-            .ripple-3 {
-                animation: rippleWave 2s linear infinite;
-                animation-delay: 2.4s;
-            }
-        }
 
         .voice-avatar {
             position: relative;
@@ -202,6 +185,10 @@ const props = defineProps<{
             box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
             transition: all 0.1s ease-in-out;
             z-index: 2;
+
+            &.speaking {
+                animation: scale-avatar 1s ease-in-out infinite;
+            }
 
             img {
                 width: 100%;
@@ -215,25 +202,29 @@ const props = defineProps<{
     }
 }
 
-/* 涟漪动画 */
-@keyframes rippleWave {
+@keyframes scale-avatar {
     0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.8;
+        transform: scale(1);
     }
 
-    50% {
-        opacity: 0.4;
+    20% {
+        transform: scale(1.02);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+
+    70% {
+        transform: scale(1.05);
     }
 
     100% {
-        transform: translate(-50%, -50%) scale(2);
-        opacity: 0;
+        transform: scale(1);
     }
 }
 
-/* 音浪动画 */
-@keyframes voiceWave {
+@keyframes voice-wave {
     0% {
         height: 2px;
         opacity: 0.6;

@@ -1,16 +1,24 @@
-import { ref } from "vue";
-import { ChatState, type ChatStateConfig, type ChatStateTransition, type ChatEventType, type ChatEventHandler } from "@/types/chat";
+import { computed, ref } from "vue";
+import {
+    ChatState,
+    type ChatStateDependencies,
+    type ChatStateTransition,
+    type ChatEventType,
+    type ChatEventHandler
+} from "@/types/chat";
+import type { AbortMessage, AIListening_Start, AIListening_Stop } from "@/types/message";
 
 export class ChatStateManager {
-    public currentState = ref<ChatState>(ChatState.IDLE);
-    public config: ChatStateConfig;
+    private _currentState = ref<ChatState>(ChatState.IDLE);
+    readonly currentState = computed<ChatState>(() => this._currentState.value);
+    private deps: ChatStateDependencies;
     public transitions: Map<ChatState, ChatStateTransition>;
     private eventHandlers: Map<ChatEventType, ChatEventHandler[]> = new Map();
     private silenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(config: ChatStateConfig) {
+    constructor(deps: ChatStateDependencies) {
         this.transitions = new Map<ChatState, ChatStateTransition>();
-        this.config = config;
+        this.deps = deps;
         this.initializeTransitions();
     }
 
@@ -27,39 +35,57 @@ export class ChatStateManager {
 
     private initializeTransitions() {
         this.transitions.set(ChatState.IDLE, {
+            onEnter: () => {
+                this.deps.voiceAnimationManager?.updateAIWave(0);
+            },
             handleAudioLevel: (audioLevel: number) => {
-                if (audioLevel > this.config.thresholds.USER_SPEAKING) {
+                if (audioLevel > this.deps.thresholds.USER_SPEAKING) {
                     this.setState(ChatState.USER_SPEAKING);
                 }
             }
         })
 
         this.transitions.set(ChatState.USER_SPEAKING, {
-            onEnter: () => {
+            onEnter: (oldState) => {
+                if (oldState === ChatState.USER_SPEAKING) return;
+                const aiListening_Start: AIListening_Start = {
+                    type: "listen",
+                    state: "start",
+                    mode: "auto",
+                };
+                this.deps.callbacks.sendTextData(aiListening_Start)
+                console.log("[ChatStateManager][USER_SPEAKING.onEnter] User started speaking");
                 this.emit("userStartSpeaking")
             },
             onExit: () => {
-                this.emit("userStopSpeaking")
                 if (this.silenceTimer) {
                     clearTimeout(this.silenceTimer);
                     this.silenceTimer = null;
                 }
+                const aiListening_Stop: AIListening_Stop = {
+                    type: "listen",
+                    state: "stop",
+                    mode: "auto",
+                };
+                this.deps.callbacks.sendTextData(aiListening_Stop);
+                console.log("[ChatStateManager][USER_SPEAKING.onExit] User stoped speaking");
+                this.emit("userStopSpeaking")
             },
             handleAudioLevel: (audioLevel: number, data: Float32Array) => {
-                this.emit("userAudioLevelChange", audioLevel);
-                this.config.callbacks.sendAudioData(data);
-                if (audioLevel < this.config.thresholds.USER_SPEAKING) {
+                this.deps.callbacks.sendAudioData(data);
+                if (audioLevel < this.deps.thresholds.USER_SPEAKING) {
                     if (!this.silenceTimer) {
-                        // 用户停止说话 2s 后，切换到 AI_SPEAKING 状态
+                        // 用户停止说话 {SLIENCE} 秒后，切换到 AI_SPEAKING 状态
                         this.silenceTimer = setTimeout(() => {
-                            if (this.currentState.value === ChatState.USER_SPEAKING) {
-                                this.setState(ChatState.AI_SPEAKING);
-                            }
+                            console.log("[ChatStateManager][USER_SPEAKING.handleAudioLevel] User stopped speaking, time's up");
+                            this.setState(ChatState.AI_SPEAKING);
                             this.silenceTimer = null;
-                        }, this.config.timeout.SILENCE);
+                        }, this.deps.timeout.SILENCE);
                     }
                 } else {
+                    this.deps.voiceAnimationManager?.updateUserWave(audioLevel);
                     if (this.silenceTimer) {
+                        console.log("[ChatStateManager][USER_SPEAKING.handleAudioLevel] User is still speaking, clearing silence timer");
                         clearTimeout(this.silenceTimer);
                         this.silenceTimer = null;
                     }
@@ -68,7 +94,8 @@ export class ChatStateManager {
         })
 
         this.transitions.set(ChatState.AI_SPEAKING, {
-            onEnter: () => {
+            onEnter: (oldState) => {
+                if (oldState === ChatState.AI_SPEAKING) return;
                 this.emit("aiStartSpeaking")
             },
             onExit: () => {
@@ -76,13 +103,12 @@ export class ChatStateManager {
             },
             handleAudioLevel: (audioLevel: number) => {
                 this.emit("aiAudioLevelChange", audioLevel);
-                if (audioLevel > this.config.thresholds.USER_INTERRUPT_AI) {
-                    // 通知小智，你被打断了
-                    const abortMessage = JSON.stringify({
+                if (audioLevel > this.deps.thresholds.USER_INTERRUPT_AI) {
+                    const abortMessage: AbortMessage = {
                         type: "abort",
-                        session_id: this.config.callbacks.getSessionId(),
-                    });
-                    this.config.callbacks.sendTextData(abortMessage);
+                        session_id: this.deps.callbacks.getSessionId(),
+                    };
+                    this.deps.callbacks.sendTextData(abortMessage);
                     this.setState(ChatState.USER_SPEAKING);
                 }
             },
@@ -90,7 +116,13 @@ export class ChatStateManager {
     }
 
     public setState(newState: ChatState) {
-        this.emit("stateChange", newState)
+        const oldState = this.currentState.value;
+        const oldTransition = this.transitions.get(oldState);
+        const newTransition = this.transitions.get(newState);
+        oldTransition?.onExit?.();
+        this._currentState.value = newState;
+        console.log("[ChatStateManager][setState] State changed from", oldState, "to", newState)
+        newTransition?.onEnter?.(oldState);
     }
 
     public handleUserAudioLevel(audioLevel: number, data: Float32Array) {
@@ -100,7 +132,9 @@ export class ChatStateManager {
     }
 
     public handleAIAudioLevel(audioLevel: number) {
-        this.emit("aiAudioLevelChange", audioLevel);
+        if (this.currentState.value === ChatState.AI_SPEAKING) {
+            this.deps.voiceAnimationManager?.updateAIWave(audioLevel);
+        }
     }
 
     public destroy() {

@@ -1,3 +1,14 @@
+import { VoiceAnimationManager } from '../services/VoiceAnimationManager';
+
+export enum ChatEvent {
+    USER_START_SPEAKING = 'userStartSpeaking',
+    USER_STOP_SPEAKING = 'userStopSpeaking',
+    AI_START_SPEAKING = 'aiStartSpeaking',
+    AI_STOP_SPEAKING = 'aiStopSpeaking',
+    USER_AUDIO_LEVEL_CHANGE = 'userAudioLevelChange',
+    AI_AUDIO_LEVEL_CHANGE = 'aiAudioLevelChange',
+}
+
 export type ChatEventType =
     | 'userStartSpeaking'
     | 'userStopSpeaking'
@@ -5,7 +16,6 @@ export type ChatEventType =
     | 'aiStopSpeaking'
     | 'userAudioLevelChange'
     | 'aiAudioLevelChange'
-    | 'stateChange'
 
 export type ChatEventHandler = (data?: any) => void;
 
@@ -13,10 +23,9 @@ export enum ChatState {
     IDLE = "idle",
     AI_SPEAKING = "ai_speaking",
     USER_SPEAKING = "user_speaking",
-    INTERRUPTED = 'interrupted'
 }
 
-export interface ChatStateConfig {
+export interface ChatStateDependencies {
     thresholds: {
         USER_SPEAKING: number;
         USER_INTERRUPT_AI: number;
@@ -26,14 +35,15 @@ export interface ChatStateConfig {
     };
     callbacks: {
         sendAudioData: (data: Float32Array) => void;
-        sendTextData: (text: string) => void;
+        sendTextData: (text: any) => void;
         getSessionId: () => string;
-    }
+    };
+    voiceAnimationManager?: VoiceAnimationManager
 }
 
 // 状态转换接口
 export interface ChatStateTransition {
-    onEnter?: () => void;
-    onExit?: () => void;
+    onEnter?: (oldState?: ChatState) => void;
+    onExit?: (newState?: ChatState) => void;
     handleAudioLevel: (audioLevel: number, data?: any) => void;
 }

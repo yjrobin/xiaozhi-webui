@@ -391,16 +391,7 @@ class WebSocketProxy:
             async for message in client_ws:
                 # 文字数据
                 if isinstance(message, str):
-                    try:
-                        msg_data = json.loads(message)
-                        if msg_data.get("type") == "reset":
-                            logger.info("重置音频缓存区")
-                            self.audio_processor.reset_buffer()
-                        else:
-                            await server_ws.send(message)
-                    except json.JSONDecodeError:
-                        await server_ws.send(message)
-
+                    await server_ws.send(message)
                 # 音频数据
                 else:
                     try:

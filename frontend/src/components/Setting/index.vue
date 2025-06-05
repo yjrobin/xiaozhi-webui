@@ -5,14 +5,14 @@ import { ElMessage } from "element-plus";
 const settingStore = useSettingStore();
 
 const handleQuit = () => {
-    settingStore.visible = false;
+    settingStore.setVisible(false);
     settingStore.saveToLocal();
     ElMessage.success("设置已保存");
 };
 </script>
 
 <template>
-    <div class="setting-panel">
+    <div class="setting-panel" :class="{ visible: settingStore.visible }">
         <div class="setting-content">
             <h2>设置</h2>
             <div style="display: flex; flex-direction: column">
@@ -37,7 +37,7 @@ const handleQuit = () => {
                     <label>Token 设置</label>
                     <label class="toggle-switch">
                         <input type="checkbox" :checked="settingStore.tokenEnable"
-                            @click="settingStore.tokenEnable = !settingStore.tokenEnable" />
+                            @click="settingStore.setTokenEnable(!settingStore.tokenEnable)" />
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -63,7 +63,7 @@ const handleQuit = () => {
     transform: translateX(100%);
     overflow: hidden;
 
-    &.settingPanelVisible {
+    &.visible {
         transform: translateX(0);
     }
 

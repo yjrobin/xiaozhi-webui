@@ -30,6 +30,18 @@ export type UserEcho = {
     session_id: string
 }
 
+export type UserMessage = {
+    type: "listen",
+    state: "detect",
+    text: string,
+    source: "text",
+}
+
+export type AbortMessage = {
+    type: "abort"
+    session_id: string
+}
+
 export type AI_TTS_Start = {
     type: 'tts'
     state: 'start'
@@ -58,7 +70,7 @@ export type AIListening_Start = {
 }
 
 export type AIListening_Stop = {
-    type: "listen",
-    state: "stop",
-    mode: "auto",
+    type: "listen"
+    state: "stop"
+    mode: "auto"
 }

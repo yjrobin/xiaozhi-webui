@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import type { Ref } from 'vue'
 import { useSettingStore } from '@/stores/setting'
 import type { WebSocketMessage } from '@/types/message'
-import type { WebSocketHandlers } from '@/types/websocket'
+import type { WebSocketDependencies, WebSocketHandlers } from '@/types/websocket'
 
 export class WebSocketService {
     private ws: WebSocket | null = null
@@ -10,9 +10,11 @@ export class WebSocketService {
     public connectionStatus: Ref<'connected' | 'disconnected' | 'error'>
     private handlers: WebSocketHandlers
     private reconnectTimer: number | null = null
+    private deps: WebSocketDependencies
 
-    constructor(handlers: WebSocketHandlers) {
+    constructor(deps: WebSocketDependencies, handlers: WebSocketHandlers) {
         this.connectionStatus = ref('disconnected')
+        this.deps = deps
         this.handlers = handlers
     }
 
@@ -81,7 +83,9 @@ export class WebSocketService {
     private async handleMessage(event: MessageEvent<any>): Promise<void> {
         try {
             if (event.data instanceof Blob) {
-                await this.handleAudioMessage(event.data)
+                const arrayBuffer: ArrayBuffer = await event.data.arrayBuffer();
+                const audioBuffer: AudioBuffer = await this.deps.decodeAudioData(arrayBuffer);
+                await this.handleAudioMessage(audioBuffer)
             } else {
                 await this.handleTextMessage(event.data)
             }
@@ -90,8 +94,8 @@ export class WebSocketService {
         }
     }
 
-    private async handleAudioMessage(data: Blob): Promise<void> {
-        await this.handlers.onAudioMessage?.(data)
+    private async handleAudioMessage(audioBuffer: AudioBuffer): Promise<void> {
+        await this.handlers.onAudioMessage?.(audioBuffer)
     }
 
     private async handleTextMessage(data: any): Promise<void> {
@@ -105,11 +109,10 @@ export class WebSocketService {
     private sendHelloMessage(): void {
         const helloMessage = {
             type: "hello",
-            version: 1,
-            transport: "websocket",
+            version: 3,
             audio_params: {
                 format: "opus",
-                sample_rate: 24000,
+                sample_rate: 16000,  // 需要与后端采样率相匹配（直接改为 24000 将导致语音对话频繁中断）
                 channels: 1,
                 frame_duration: 60,
             }

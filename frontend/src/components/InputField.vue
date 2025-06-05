@@ -1,16 +1,10 @@
 <script lang="ts" setup>
-import { ref, computed, defineProps } from 'vue';
-import { ChatState } from '@/types/chat';
-import type { ChatStateManager } from '@/services/ChatStateManager';
-import type { WebSocketService } from '@/services/WebSocketService';
+import { ref, computed } from 'vue';
 
-const props = defineProps<{
-    chatStateManager: ChatStateManager;
-    wsService: WebSocketService;
-    abortPlayingAndClean: () => void;
-    showVoiceCallPanel: () => void;
-}>()
-
+const emit = defineEmits<{
+    (e: 'sendMessage', text: string): void
+    (e: 'phoneCallButtonClicked'): void
+}>();
 
 const message = ref<string>("");
 const isFocused = ref<boolean>(false);
@@ -31,7 +25,7 @@ const onInput = (e: Event) => {
 const handleKeyPress = (e: KeyboardEvent) => {
     if (e.key === "Enter" && message.value) {
         e.preventDefault();
-        sendMessage(message.value);
+        emit('sendMessage', message.value);
         clearInputField();
         const messageInput = document.getElementById('messageInput');
         if (messageInput) {
@@ -41,36 +35,27 @@ const handleKeyPress = (e: KeyboardEvent) => {
 };
 
 const handleSendButtonClick = () => {
-    sendMessage(message.value);
+    emit('sendMessage', message.value);
     clearInputField();
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
         messageInput.innerText = "";
     }
 };
-
-// 客户端发送消息至服务端代理
-function sendMessage(text: string) {
-    const textMessage = JSON.stringify({
-        type: "listen",
-        state: "detect",
-        text: text,
-        source: "text",
-    });
-
-    if (props.chatStateManager.currentState.value == ChatState.AI_SPEAKING) {
-        props.abortPlayingAndClean();
-    }
-    props.wsService.sendTextMessage(textMessage)
-}
-
 </script>
 
 <template>
 
     <div class="input-field">
-        <div id="messageInput" contenteditable="true" @input="onInput" @keydown="handleKeyPress"
-            @focus="isFocused = true" @blur="isFocused = false">{{ displayMessage }}
+        <div 
+            id="messageInput" 
+            contenteditable="true" 
+            @input="onInput" 
+            @keydown="handleKeyPress"
+            @focus="isFocused = true" 
+            @blur="isFocused = false"
+        >
+            {{ displayMessage }}
         </div>
         <button id="send-message" @click="handleSendButtonClick">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -79,7 +64,7 @@ function sendMessage(text: string) {
                     clip-rule="evenodd" />
             </svg>
         </button>
-        <button id="phone-call" @click="props.showVoiceCallPanel">
+        <button id="phone-call" @click="emit('phoneCallButtonClicked')">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path
                     d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
