@@ -5,7 +5,7 @@ import SettingButton from '../Setting/SettingButton.vue'
 
 <template>
     <div class="title-container">
-        <span class="title">小智AI</span>
+        <span class="title">小智</span>
         <SettingButton />
     </div>
 </template>
