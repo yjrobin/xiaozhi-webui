@@ -1,19 +1,16 @@
-import { ref } from 'vue'
-import type { Ref } from 'vue'
-import { useSettingStore } from '@/stores/setting'
+import { computed, ref } from 'vue'
 import type { WebSocketMessage } from '@/types/message'
 import type { WebSocketDependencies, WebSocketHandlers } from '@/types/websocket'
 
 export class WebSocketService {
+    private _connectionStatus = ref<'connected' | 'disconnected' | 'error'>('disconnected')
+    readonly connectionStatus = computed(() => this._connectionStatus.value)
     private ws: WebSocket | null = null
-    private configStore = useSettingStore()
-    public connectionStatus: Ref<'connected' | 'disconnected' | 'error'>
     private handlers: WebSocketHandlers
     private reconnectTimer: number | null = null
     private deps: WebSocketDependencies
 
     constructor(deps: WebSocketDependencies, handlers: WebSocketHandlers) {
-        this.connectionStatus = ref('disconnected')
         this.deps = deps
         this.handlers = handlers
     }
@@ -35,6 +32,10 @@ export class WebSocketService {
         this.ws = null
     }
 
+    public setConnectionStatus(status: 'connected' | 'disconnected' | 'error'): void {
+        this._connectionStatus.value = status
+    }
+
     public sendTextMessage(message: any): void {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
             console.warn("[WebSocketService] Connection not ready")
@@ -54,8 +55,8 @@ export class WebSocketService {
     }
 
     private handleOpen(): void {
-        console.log("[WebSocketService] Connected to server", this.configStore.wsProxyUrl)
-        this.connectionStatus.value = "connected"
+        console.log("[WebSocketService] Connected to server", this.deps.settingStore.wsProxyUrl)
+        this._connectionStatus.value = "connected"
 
         // 发送 Hello 消息
         this.sendHelloMessage()
@@ -64,19 +65,19 @@ export class WebSocketService {
 
     private handleClose(event: CloseEvent): void {
         console.log(`[WebSocketService] Connection closed: ${event.code} ${event.reason}`)
-        this.connectionStatus.value = "disconnected"
-        this.configStore.setSessionId("")
+        this._connectionStatus.value = "disconnected"
+        this.deps.settingStore.sessionId = ""
         this.handlers.onDisconnect?.(event)
 
         // 3秒后重连
         this.reconnectTimer = window.setTimeout(() => {
-            this.connect(this.configStore.wsProxyUrl)
+            this.connect(this.deps.settingStore.wsProxyUrl)
         }, 3000)
     }
 
     private handleError(error: Event): void {
         console.error("[WebSocketService] Error:", error)
-        this.connectionStatus.value = "error"
+        this._connectionStatus.value = "error"
         this.handlers.onError?.(error)
     }
 
@@ -101,7 +102,7 @@ export class WebSocketService {
     private async handleTextMessage(data: any): Promise<void> {
         const message = JSON.parse(data) as WebSocketMessage
         if (message.type === "hello") {
-            this.configStore.setSessionId(message.session_id!)
+            this.deps.settingStore.sessionId = message.session_id!
         }
         await this.handlers.onTextMessage?.(message)
     }

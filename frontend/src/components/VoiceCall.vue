@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { defineProps } from 'vue';
 import { ChatState } from '@/types/chat';
 import type { VoiceAnimationManager } from '@/services/VoiceAnimationManager';
 import type { ChatStateManager } from '@/services/ChatStateManager';
@@ -16,7 +15,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <div class="phone-call-container" :class="{ active: props.isVisible }">
+    <div class="phone-call-container" :class="{ visible: props.isVisible }">
         <div class="voice-avatar-container">
             <div class="voice-avatar" :class="{ speaking: props.chatStateManager.currentState.value === ChatState.AI_SPEAKING }">
                 <img src="/avatar.jpg" alt="小智头像" />
@@ -54,7 +53,7 @@ const emit = defineEmits<{
     overflow: hidden;
     transition: all 0.5s ease-in-out;
 
-    &.active {
+    &.visible {
         transform: translateY(0);
     }
 

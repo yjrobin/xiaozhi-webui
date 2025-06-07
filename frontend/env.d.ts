@@ -14,6 +14,11 @@ declare global {
     AudioContext: typeof AudioContext;
     webkitAudioContext: typeof AudioContext;
   }
+  interface Navigator {
+    getUserMedia?: any;
+    webkitGetUserMedia?: any;
+    mozGetUserMedia?: any;
+  }
 }
 
 export { };

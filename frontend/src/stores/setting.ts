@@ -1,4 +1,4 @@
-import { ref, type Ref, computed } from 'vue'
+import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
 
 type ConfigData = {
@@ -6,6 +6,7 @@ type ConfigData = {
 	ws_url: string
 	ws_proxy_url: string
 	ota_version_url: string,
+	backend_url: string,
 	token_enable: boolean
 	token: string
 	device_id: string
@@ -13,71 +14,28 @@ type ConfigData = {
 
 export const useSettingStore = defineStore('setting', () => {
 	// state
-	const _sessionId = ref<string>("")
-	const _deviceId = ref<string>("")
-	const _wsUrl = ref<string>("")
-	const _wsProxyUrl = ref<string>("")
-	const _otaVersionUrl = ref<string>("")
-	const _tokenEnable = ref<boolean>(false)
-	const _token = ref<string>("")
-	const _visible = ref<boolean>(false)
-
-	// getter
-	const sessionId = computed(() => _sessionId.value)
-	const deviceId = computed(() => _deviceId.value)
-	const wsUrl = computed(() => _wsUrl.value)
-	const wsProxyUrl = computed(() => _wsProxyUrl.value)
-	const otaVersionUrl = computed(() => _otaVersionUrl.value)
-	const tokenEnable = computed(() => _tokenEnable.value)
-	const token = computed(() => _token.value)
-	const visible = computed(() => _visible.value)
-
-	// mutation action
-	const setSessionId = (id: string) => {
-		_sessionId.value = id
-	}
-
-	const setDeviceId = (id: string) => {
-		_deviceId.value = id
-	}
-
-	const setWsUrl = (url: string) => {
-		_wsUrl.value = url
-	}
-
-	const setWsProxyUrl = (url: string) => {
-		_wsProxyUrl.value = url
-	}
-
-	const setOtaVersionUrl = (url: string) => {
-		_otaVersionUrl.value = url
-	}
-
-	const setTokenEnable = (enable: boolean) => {
-		_tokenEnable.value = enable
-	}
-
-	const setToken = (newToken: string) => {
-		_token.value = newToken
-	}
-
-	const setVisible = (v: boolean) => {
-		_visible.value = v
-	}
-
+	const sessionId = ref<string>("")
+	const deviceId = ref<string>("")
+	const wsUrl = ref<string>("")
+	const wsProxyUrl = ref<string>("")
+	const otaVersionUrl = ref<string>("")
+	const backendUrl = ref<string>("")
+	const tokenEnable = ref<boolean>(false)
+	const token = ref<string>("")
+	const visible = ref<boolean>(false)
+	
 	const configRefMap: Record<string, Ref<string | boolean>> = {
-		ws_url: _wsUrl,
-		ws_proxy_url: _wsProxyUrl,
-		ota_version_url: _otaVersionUrl,
-		token_enable: _tokenEnable,
-		token: _token,
-		device_id: _deviceId
+		ws_url: wsUrl,
+		ws_proxy_url: wsProxyUrl,
+		ota_version_url: otaVersionUrl,
+		token_enable: tokenEnable,
+		token: token,
+		device_id: deviceId
 	}
 
-	// service action
 	const fetchConfig = async () => {
 		try {
-			const response = await fetch(import.meta.env.VITE_APP_SERVER_URL + "/config")
+			const response = await fetch(backendUrl.value + "/config")
 			const jsonData = await response.json()
 			console.log("[useSettingStore][fetchConfig] response: ", jsonData)
 			if (!response.ok) {
@@ -87,11 +45,10 @@ export const useSettingStore = defineStore('setting', () => {
 			Object.entries(configRefMap).forEach(([key, ref]) => {
 				const value = data[key]
 				if (value !== undefined && value !== null) {
-					if (key === 'device_id') {
-						console.log("[useSettingStore][fetchConfig] device_id: ", value)
-					}
+					// 本地服务器和本地代理 IP 默认为 localhost
 					if (key === 'ws_proxy_url' && typeof value === 'string') {
-						ref.value = 'ws://localhost' + value.substring(value.lastIndexOf(':'))  // 获取代理 Websocket 的运行端口号
+						const backendIp = backendUrl.value.split('://')[1].split(':')[0]
+						ref.value = `ws://${backendIp}` + value.substring(value.lastIndexOf(':'))
 					} else {
 						ref.value = value
 					}
@@ -104,12 +61,13 @@ export const useSettingStore = defineStore('setting', () => {
 
 	const saveToLocal = () => {
 		const configJson = {
-			ws_url: _wsUrl.value,
-			ws_proxy_url: _wsProxyUrl.value,
-			ota_version_url: _otaVersionUrl.value,
-			token_enable: _tokenEnable.value,
-			token: _token.value,
-			device_id: _deviceId.value
+			ws_url: wsUrl.value,
+			ws_proxy_url: wsProxyUrl.value,
+			ota_version_url: otaVersionUrl.value,
+			backend_url: backendUrl.value,
+			token_enable: tokenEnable.value,
+			token: token.value,
+			device_id: deviceId.value
 		}
 		localStorage.setItem('settings', JSON.stringify(configJson))
 		console.log("[useSettingStore][saveToLocal] 配置文件更新成功", configJson)
@@ -140,20 +98,14 @@ export const useSettingStore = defineStore('setting', () => {
 		wsUrl,
 		wsProxyUrl,
 		otaVersionUrl,
+		backendUrl,
 		tokenEnable,
 		token,
 		visible,
-		setSessionId,
-		setDeviceId,
-		setWsUrl,
-		setWsProxyUrl,
-		setOtaVersionUrl,
-		setTokenEnable,
-		setToken,
-		setVisible,
 		updateConfig,
 		fetchConfig,
 		saveToLocal,
 		loadFromLocal,
 	}
 })
+

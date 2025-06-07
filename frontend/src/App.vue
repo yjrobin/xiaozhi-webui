@@ -22,7 +22,7 @@ const voiceAnimationManager = new VoiceAnimationManager();
 const chatStateManager = new ChatStateManager({
   thresholds: {
     USER_SPEAKING: 0.04,
-    USER_INTERRUPT_AI: 0.08
+    USER_INTERRUPT_AI: 0.1,
   },
   timeout: {
     SILENCE: 1000
@@ -61,6 +61,7 @@ import { WebSocketService } from "./services/WebSocketManager.ts";
 const chatContainerRef = ref<InstanceType<typeof ChatContainer> | null>(null);
 const wsService = new WebSocketService({
   decodeAudioData: (arrayBuffer: ArrayBuffer) => audioService.decodeAudioData(arrayBuffer),
+  settingStore: settingStore,
 },{
   async onAudioMessage(audioBuffer) {
     console.log("[WebSocketService][onAudioMessage] audio data received.");
@@ -88,7 +89,7 @@ const wsService = new WebSocketService({
     switch (message.type) {
       case "hello":
         const helloMessage = message as HelloResponse;
-        settingStore.setSessionId(helloMessage.session_id!);
+        settingStore.sessionId = helloMessage.session_id!;
         console.log("[WebSocketService][onTextmessage] Session ID:", helloMessage.session_id);
         break;
 
@@ -128,7 +129,7 @@ import SettingPanel from './components/Setting/index.vue'
 import VoiceCall from "./components/VoiceCall.vue";
 import InputField from "./components/InputField.vue";
 import ChatContainer from './components/ChatContainer.vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 const sendAbortMessage = () => {
   const abortMessage: AbortMessage = {
@@ -157,8 +158,8 @@ const isVoiceCallVisible = ref<boolean>(false);
 const showVoiceCallPanel = async () => {
   sendAbortMessage();
   audioService.clearAudioQueue();
-  await audioService.prepareMediaResources();
   isVoiceCallVisible.value = true;
+  await audioService.prepareMediaResources();
   if (chatStateManager.currentState.value != ChatState.IDLE) {
     chatStateManager.setState(ChatState.IDLE);
   }
@@ -167,13 +168,23 @@ const showVoiceCallPanel = async () => {
 const closeVoiceCallPanel = async () => {
   isVoiceCallVisible.value = false;
   sendAbortMessage();
-  audioService.clearMediaResources();
+  audioService.stopMediaResources();
 };
 
 onMounted(async () => {
   const loaded = settingStore.loadFromLocal();
   if (!loaded) {
-    console.log("[App][onMounted] 未发现本地配置，正在获取默认配置");
+    if (!settingStore.backendUrl) {
+			const { value: backendUrl } = await ElMessageBox.prompt('请输入本地服务器地址：', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				inputValue: 'http://localhost:8081',
+				inputPattern: /^http(s?):\/\/.+/,
+				inputErrorMessage: '请输入有效的服务器地址(http:// 或 https:// 开头)',
+			});
+      settingStore.backendUrl = backendUrl;
+      ElMessage.success("后端服务器地址已保存");
+    }
     await settingStore.fetchConfig();
     settingStore.saveToLocal();
     ElMessage.warning("未发现本地配置，默认配置已加载")
@@ -185,8 +196,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
   console.log("[App][onUnmounted] Clearing resources...");
-  audioService.clearMediaResources();
   chatStateManager.destroy();
+  audioService.clearMediaResources();
 });
 </script>
 

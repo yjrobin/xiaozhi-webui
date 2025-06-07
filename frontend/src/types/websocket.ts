@@ -1,4 +1,5 @@
 import type { WebSocketMessage } from './message';
+import { useSettingStore } from '@/stores/setting';
 
 export interface WebSocketHandlers {
     onConnect?: () => void;
@@ -10,4 +11,5 @@ export interface WebSocketHandlers {
 
 export interface WebSocketDependencies {
     decodeAudioData: (arrayBuffer: ArrayBuffer) => Promise<AudioBuffer>;
+    settingStore: ReturnType<typeof useSettingStore>;
 }

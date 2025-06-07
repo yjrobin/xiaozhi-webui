@@ -5,17 +5,13 @@ export enum ChatEvent {
     USER_STOP_SPEAKING = 'userStopSpeaking',
     AI_START_SPEAKING = 'aiStartSpeaking',
     AI_STOP_SPEAKING = 'aiStopSpeaking',
-    USER_AUDIO_LEVEL_CHANGE = 'userAudioLevelChange',
-    AI_AUDIO_LEVEL_CHANGE = 'aiAudioLevelChange',
 }
 
 export type ChatEventType =
-    | 'userStartSpeaking'
-    | 'userStopSpeaking'
-    | 'aiStartSpeaking'
-    | 'aiStopSpeaking'
-    | 'userAudioLevelChange'
-    | 'aiAudioLevelChange'
+    | ChatEvent.USER_START_SPEAKING
+    | ChatEvent.USER_STOP_SPEAKING
+    | ChatEvent.AI_START_SPEAKING
+    | ChatEvent.AI_STOP_SPEAKING
 
 export type ChatEventHandler = (data?: any) => void;
 

@@ -12,10 +12,6 @@ export class VoiceAnimationManager {
 
     constructor() { }
 
-    public setAvatarScale(scale: number) {
-        this._avatarScale.value = Math.min(Math.max(scale, this.minAIScale), this.maxAIScale);
-    }
-
     public setVoiceWaveHeight(height: number) {
         this._voiceWaveHeight.value = Math.min(Math.max(height, this.minWaveHeight), this.maxWaveHeight);
     }
@@ -24,11 +20,7 @@ export class VoiceAnimationManager {
         if (audioLevel > 0.01) {
             this.setVoiceWaveHeight(this.minWaveHeight + audioLevel * 100);
         } else {
-            this.setAvatarScale(this.minWaveHeight);
+            this.setVoiceWaveHeight(this.minWaveHeight);
         }
-    }
-
-    public updateAIWave(audioLevel: number) {
-        this.setAvatarScale(1 + audioLevel * 200 - 0.1)
     }
 }

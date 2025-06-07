@@ -5,7 +5,7 @@ import { ElMessage } from "element-plus";
 const settingStore = useSettingStore();
 
 const handleQuit = () => {
-    settingStore.setVisible(false);
+    settingStore.visible = false;
     settingStore.saveToLocal();
     ElMessage.success("设置已保存");
 };
@@ -17,8 +17,11 @@ const handleQuit = () => {
             <h2>设置</h2>
             <div style="display: flex; flex-direction: column">
                 <label>OTA地址</label>
-                <input v-model="settingStore.otaVersionUrl" type="text"
-                    placeholder="例如: https://api.tenclass.net/xiaozhi/ota/" />
+                <input 
+                    v-model="settingStore.otaVersionUrl" 
+                    type="text"
+                    placeholder="例如: https://api.tenclass.net/xiaozhi/ota/" 
+                />
             </div>
             <div style="display: flex; flex-direction: column">
                 <label>远程服务器地址</label>
@@ -29,6 +32,10 @@ const handleQuit = () => {
                 <input v-model="settingStore.wsProxyUrl" type="text" placeholder="例如: ws://localhost:5000" />
             </div>
             <div style="display: flex; flex-direction: column">
+                <label>本地服务器地址</label>
+                <input v-model="settingStore.backendUrl" type="text" placeholder="例如: http://localhost:8081" />
+            </div>
+            <div style="display: flex; flex-direction: column">
                 <div style="
                     display: flex;
                     justify-content: space-between;
@@ -37,7 +44,7 @@ const handleQuit = () => {
                     <label>Token 设置</label>
                     <label class="toggle-switch">
                         <input type="checkbox" :checked="settingStore.tokenEnable"
-                            @click="settingStore.setTokenEnable(!settingStore.tokenEnable)" />
+                            @click="settingStore.tokenEnable = !settingStore.tokenEnable" />
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
