@@ -1,6 +1,8 @@
 from urllib.parse import urlparse
 from app.libs.logger import get_logger, setup_logging
+from app.libs.system_info import setup_opus
 
+setup_opus()  # 在导入 opuslib 之前 windows 需要手动加载 opus.dll 动态链接库
 setup_logging()
 
 proxy_process = None

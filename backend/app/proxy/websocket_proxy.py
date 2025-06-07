@@ -1,115 +1,13 @@
 import asyncio
 import websockets
 import json
-import wave
-import io
 import numpy as np
-import sys
-from ..libs.device import get_mac_address, get_local_ip
 import requests
+from ..libs.device import get_mac_address, get_local_ip
 from ..libs.logger import get_logger
-from dotenv import load_dotenv
+from ..libs.audio import pcm_to_opus, decoder, AudioProcessor
 
-# 在导入 opuslib 之前 windows 需要手动加载 opus.dll 动态链接库
-from ..libs.system_info import setup_opus
-
-load_dotenv()
 logger = get_logger(__name__)
-setup_opus()
-try:
-    import opuslib
-except Exception as e:
-    logger.error(f"导入 opuslib 失败: {e}")
-    logger.error("请确保 opus 动态库已正确安装或位于正确的位置")
-    sys.exit(1)
-
-
-def opus_to_wav(opus_data):
-    """将Opus音频数据转换为WAV格式"""
-    try:
-        # 创建解码器：16kHz, 单声道
-        decoder = opuslib.Decoder(16000, 1)
-
-        try:
-            # 解码Opus数据
-            pcm_data = decoder.decode(opus_data, 960)  # 使用960采样点
-            if pcm_data:
-                # 将PCM数据转换为numpy数组
-                audio_array = np.frombuffer(pcm_data, dtype=np.int16)
-
-                # 创建 Wave 文件
-                wav_io = io.BytesIO()
-                with wave.open(wav_io, "wb") as wav:
-                    wav.setnchannels(1)  # 单声道
-                    wav.setsampwidth(2)  # 16位
-                    wav.setframerate(16000)  # 16kHz
-                    wav.writeframes(audio_array.tobytes())
-                return wav_io.getvalue()
-            return None
-
-        except opuslib.OpusError as e:
-            logger.error(f"Opus 解码错误: {e}, 数据长度: {len(opus_data)}")
-            return None
-
-    except Exception as e:
-        logger.error(f"音频处理错误: {e}")
-        return None
-
-
-def pcm_to_opus(pcm_data: bytes):
-    """将 PCM 音频数据转换为 Opus 格式"""
-    try:
-        encoder = opuslib.Encoder(16000, 1, "voip")
-
-        # 转化为 numpy 数组
-        pcm_array = np.frombuffer(pcm_data, dtype=np.int16)
-
-        # 将 PCM 数据编码为 Opus
-        opus_data = encoder.encode(pcm_array.tobytes(), 960)
-
-        return opus_data
-    except opuslib.OpusError as e:
-        logger.error(f"Opus 编码错误: {e}, 数据长度: {len(pcm_data)}")
-        return None
-
-
-class AudioProcessor:
-    def __init__(self, buffer_size):
-        self.buffer_size: int = buffer_size
-        self.buffer = np.array([], dtype=np.float32)
-        self.sample_rate = 16000
-
-    def reset_buffer(self):
-        self.buffer = np.array([], dtype=np.float32)
-
-    def process_audio(self, input_data: bytes) -> list[bytes]:
-        # 将输入数据转换为 float32 数组
-        input_array = np.frombuffer(input_data, dtype=np.float32)
-
-        # 将新数据添加到缓冲区
-        self.buffer = np.append(self.buffer, input_array)
-
-        chunks = []
-
-        # 当缓冲区达到指定大小时处理数据
-        while len(self.buffer) >= self.buffer_size:
-            # 提取数据
-            chunk = self.buffer[: self.buffer_size]
-            self.buffer = self.buffer[self.buffer_size :]
-
-            # 转换为 16 位整数
-            pcm_data = (chunk * 32767).astype(np.int16)
-            chunks.append(pcm_data.tobytes())
-
-        return chunks
-
-    def process_remaining(self):
-        if len(self.buffer) > 0:
-            # 转换为16位整数
-            pcm_data = (self.buffer * 32767).astype(np.int16)
-            self.buffer = np.array([], dtype=np.float32)
-            return [pcm_data.tobytes()]
-        return []
 
 
 class WebSocketProxy:
@@ -134,7 +32,7 @@ class WebSocketProxy:
         self.token: str = token
 
         self.audio_processor = AudioProcessor(960)
-        self.decoder = opuslib.Decoder(16000, 1)  # 保持单个解码器实例即可
+        self.decoder = decoder
         self.audio_buffer: bytearray = bytearray()  # 用于存储解码后的音频数据
         self.is_first_audio: bool = True  # 用于判断是否创建 Wave 头信息
         self.total_samples: int = 0  # 跟踪总采样数
@@ -155,13 +53,13 @@ class WebSocketProxy:
 
         headers = {"Device-Id": MAC_ADDR, "Content-Type": "application/json"}
 
-        # 构建设备信息payload
+        # 构建设备信息 payload
         payload = {
             "version": 2,
             "flash_size": 16777216,  # 闪存大小 (16MB)
             "psram_size": 0,
             "minimum_free_heap_size": 8318916,  # 最小可用堆内存
-            "mac_address": MAC_ADDR,  # 设备MAC地址
+            "mac_address": MAC_ADDR,  # 设备 MAC 地址
             "uuid": self.client_id,
             "chip_model_name": "esp32s3",  # 芯片型号
             "chip_info": {"model": 9, "cores": 2, "revision": 2, "features": 18},
@@ -180,7 +78,7 @@ class WebSocketProxy:
         }
 
         try:
-            # 发送请求到OTA服务器
+            # 发送请求到 OTA 服务器
             response = requests.post(
                 self.ota_version_url,
                 headers=headers,
@@ -189,44 +87,43 @@ class WebSocketProxy:
                 proxies={"http": None, "https": None},  # 禁用代理
             )
 
-            # 检查HTTP状态码
+            # 检查 HTTP 状态码
             if response.status_code != 200:
                 logger.error(f"OTA 服务器错误: HTTP {response.status_code}")
                 raise ValueError(f"OTA 服务器返回错误状态码: {response.status_code}")
 
-            # 解析JSON数据
+            # 解析 JSON 数据
             response_data = response.json()
 
-            # 确保"mqtt"信息存在
+            # 确保 MQTT 信息存在
             if "mqtt" in response_data:
-                logger.info(f"MQTT 信息已更新: {response_data}")
+                logger.info(f"MQTT 信息已更新:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
                 return response_data["mqtt"]
             else:
                 logger.error(
                     f"OTA 服务器返回的数据无效: 没有 MQTT 信息: {response_data}"
                 )
                 raise ValueError(
-                    "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址！"
+                    "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址"
                 )
 
         except requests.Timeout:
-            logger.error("OTA 请求超时.")
-            raise ValueError("OTA 请求超时！请稍后重试。")
+            logger.error("OTA 请求超时")
+            raise ValueError("OTA 请求超时，请稍后重试")
 
         except requests.RequestException as e:
             logger.error(f"OTA 请求失败: {e}")
-            raise ValueError("无法连接到 OTA 服务器，请检查网络连接！")
+            raise ValueError("无法连接到 OTA 服务器，请检查网络连接")
 
     def create_wav_header(self, total_samples):
         """
-        创建 Wave 文件头
-        https://blog.csdn.net/shulianghan/article/details/117351966
+        创建 Wave 文件头, https://blog.csdn.net/shulianghan/article/details/117351966
 
         参数:
-        total_samples (int): 音频数据的总采样数
+            total_samples (int): 音频数据的总采样数
 
         返回:
-        bytearray: Wave 文件头的字节数组
+            bytearray: Wave 文件头的字节数组
 
         """
         header = bytearray(44)
