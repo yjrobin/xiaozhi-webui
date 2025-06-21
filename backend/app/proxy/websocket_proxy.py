@@ -17,19 +17,19 @@ class WebSocketProxy:
         client_id: str,
         websocket_url: str,
         ota_version_url: str,
-        proxy_host: str,
-        proxy_port: str,
+        proxy_host: str | None,
+        proxy_port: int | None,
         token_enable: bool,
         token: str,
     ):
-        self.device_id: str = device_id
-        self.client_id: str = client_id
-        self.websocket_url: str = websocket_url
-        self.ota_version_url: str = ota_version_url
-        self.proxy_host: str = proxy_host
-        self.proxy_port: str = proxy_port
-        self.token_enable: bool = token_enable
-        self.token: str = token
+        self.device_id= device_id
+        self.client_id= client_id
+        self.websocket_url= websocket_url
+        self.ota_version_url= ota_version_url
+        self.proxy_host= proxy_host
+        self.proxy_port= proxy_port
+        self.token_enable= token_enable
+        self.token= token
 
         self.audio_processor = AudioProcessor(960)
         self.decoder = decoder
@@ -84,7 +84,7 @@ class WebSocketProxy:
                 headers=headers,
                 json=payload,
                 timeout=10,  # 设置超时时间，防止请求卡死
-                proxies={"http": None, "https": None},  # 禁用代理
+                # proxies={"http": None, "https": None},  # 禁用代理
             )
 
             # 检查 HTTP 状态码
@@ -97,7 +97,7 @@ class WebSocketProxy:
 
             # 确保 MQTT 信息存在
             if "mqtt" in response_data:
-                logger.info(f"MQTT 信息已更新:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
+                logger.debug(f"MQTT 信息已更新:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
                 return response_data["mqtt"]
             else:
                 logger.error(

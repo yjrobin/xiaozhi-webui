@@ -122,7 +122,6 @@ export class AudioService {
       return null;
     });
     console.log("[AudioManager][startRecording] UserMedia created:", this._audioStream);
-
   }
 
   private initUserMediaNode = () => {
@@ -165,7 +164,7 @@ export class AudioService {
       this.initProcessorNode();
     } catch (error: unknown) {
       console.error("[AudioManager][prepareMediaResources] Error:", error);
-      ElMessage.error("当前浏览器不支持语音通话");
+      ElMessage.error(error as string);
       return;
     }
 

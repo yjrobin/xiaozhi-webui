@@ -29,10 +29,10 @@ def setup_logging():
 
     # 创建按文件大小分割的文件处理器
     file_handler = RotatingFileHandler(
-        log_file, maxBytes=10 * 1024 * 1024, backupCount=5
-    )  # 每个文件最大10MB，最多保留5个文件
+        log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding='utf-8'
+    ) 
     file_handler.setLevel(logging.INFO)
-    file_handler.suffix = "%Y-%m-%d.log"
+    setattr(file_handler, 'suffix', "%Y-%m-%d.log")
 
     # 创建格式化器
     formatter = logging.Formatter("%(asctime)s [%(name)s] - %(levelname)s - %(message)s - %(processName)s")
@@ -64,7 +64,7 @@ def setup_logging():
     return log_file
 
 
-def get_logger(name):
+def get_logger(name: str) -> logging.Logger:
     """
     获取统一配置的日志记录器
 
@@ -88,6 +88,6 @@ def get_logger(name):
         logger.error(msg, *args, **kwargs)
 
     # 添加到日志记录器
-    logger.error_exc = log_error_with_exc
+    setattr(logger, 'error_exc', log_error_with_exc)
 
     return logger

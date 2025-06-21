@@ -1,22 +1,32 @@
 import uuid
 import socket
+from .logger import get_logger
+
+logger = get_logger(__name__)
 
 
-def get_mac_address():
+def get_mac_address() -> str:
     """获取设备的唯一标识符"""
-    # 获取设备的唯一标识符并转换为十六进制字符串
     mac_hex = uuid.UUID(int=uuid.getnode()).hex[-12:]
 
-    # 以 MAC 地址的形式输出 mac_hex
     mac_address = ":".join([mac_hex[i : i + 2] for i in range(0, 12, 2)])
 
-    return mac_address
+    try:
+        # 获取设备的唯一标识符并转换为十六进制字符串
+        node = uuid.getnode()
+        mac_hex = uuid.UUID(int=node).hex[-12:]
+        # 以 MAC 地址的形式输出 mac_hex
+        mac_address = ":".join([mac_hex[i : i + 2] for i in range(0, 12, 2)])
+        logger.info(f"成功获取到 MAC 地址: {mac_address} (node: {node})")
+        return mac_address
+    except Exception as e:
+        logger.error(f"获取 MAC 地址失败: {e}")
+        return ""
 
 
-def get_local_ip():
+def get_local_ip() -> str:
     """# 创建一个临时 socket 连接来获取本机 IP"""
     try:
-
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]

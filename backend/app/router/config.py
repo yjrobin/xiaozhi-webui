@@ -1,13 +1,14 @@
 from typing import Optional
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from ..config import configuration
+from ..config import ConfigManager
 from ..constant.repsonse import BaseResponse
 from ..libs.logger import get_logger
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/config", tags=["config"])
 logger = get_logger(__name__)
+configuration = ConfigManager()
 
 
 class GetConfigResponse(BaseResponse):
@@ -16,7 +17,7 @@ class GetConfigResponse(BaseResponse):
 
 @router.get("", summary="获取配置信息", response_model=GetConfigResponse)
 def get_config():
-    logger.info("配置信息: ", configuration.get_config())
+    logger.info("配置信息: ", configuration.config)
     data = {
         "ws_url": configuration.get("WS_URL"),
         "ws_proxy_url": configuration.get("WS_PROXY_URL"),
@@ -24,7 +25,6 @@ def get_config():
         "token_enable": configuration.get("TOKEN_ENABLE"),
         "token": configuration.get("TOKEN"),
         "device_id": configuration.get("DEVICE_ID"),
-        "code": 0,
     }
     return JSONResponse(
         content={"message": "配置文件获取成功", "code": 0, "data": data},
