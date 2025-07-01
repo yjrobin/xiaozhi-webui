@@ -68,11 +68,6 @@ export class WebSocketService {
         this._connectionStatus.value = "disconnected"
         this.deps.settingStore.sessionId = ""
         this.handlers.onDisconnect?.(event)
-
-        // 3秒后重连
-        this.reconnectTimer = window.setTimeout(() => {
-            this.connect(this.deps.settingStore.wsProxyUrl)
-        }, 3000)
     }
 
     private handleError(error: Event): void {

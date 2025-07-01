@@ -6,8 +6,12 @@ const settingStore = useSettingStore();
 
 const handleQuit = () => {
     settingStore.visible = false;
-    settingStore.saveToLocal();
-    ElMessage.success("设置已保存");
+    const saveOK = settingStore.saveToLocal();
+    if (!saveOK) {
+        ElMessage.error("配置保存失败，请确认数据不为空");
+        return;
+    }
+    ElMessage.success("配置已保存");
 };
 </script>
 

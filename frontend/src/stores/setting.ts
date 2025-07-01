@@ -33,7 +33,7 @@ export const useSettingStore = defineStore('setting', () => {
 		device_id: deviceId
 	}
 
-	const fetchConfig = async () => {
+	const fetchConfig = async (): Promise<boolean> => {
 		try {
 			const response = await fetch(backendUrl.value + "/config")
 			const jsonData = await response.json()
@@ -54,12 +54,14 @@ export const useSettingStore = defineStore('setting', () => {
 					}
 				}
 			})
+			return true;
 		} catch (error) {
 			console.error("[useSettingStore][fetchConfig]", error)
+			return false;
 		}
 	}
 
-	const saveToLocal = () => {
+	const saveToLocal = (): boolean => {
 		const configJson = {
 			ws_url: wsUrl.value,
 			ws_proxy_url: wsProxyUrl.value,
@@ -69,8 +71,14 @@ export const useSettingStore = defineStore('setting', () => {
 			token: token.value,
 			device_id: deviceId.value
 		}
-		localStorage.setItem('settings', JSON.stringify(configJson))
-		console.log("[useSettingStore][saveToLocal] 配置文件更新成功", configJson)
+		const dataOK = Object.values(configJson).every(value => value !== "")
+		if (dataOK) {
+			localStorage.setItem('settings', JSON.stringify(configJson))
+			console.log("[useSettingStore][saveToLocal] 配置文件更新成功", configJson)
+		} else {
+			console.warn("[useSettingStore][saveToLocal] 配置文件数据不完整，未保存", configJson)
+		}
+		return dataOK
 	}
 
 	const updateConfig = (settings: any) => {
@@ -92,6 +100,11 @@ export const useSettingStore = defineStore('setting', () => {
 		return false
 	}
 
+	const destoryLocal = () => {
+		localStorage.removeItem('settings')
+		console.log("[useSettingStore][destoryLocal] 本地缓存配置文件已删除")
+	}
+
 	return {
 		sessionId,
 		deviceId,
@@ -106,6 +119,7 @@ export const useSettingStore = defineStore('setting', () => {
 		fetchConfig,
 		saveToLocal,
 		loadFromLocal,
+		destoryLocal,
 	}
 })
 

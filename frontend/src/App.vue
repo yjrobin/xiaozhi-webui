@@ -121,6 +121,15 @@ const wsService = new WebSocketService({
         break;
     }
   },
+  onConnect() {
+    ElMessage.success("连接成功");
+  },
+  onDisconnect() {
+    ElMessage.error("连接已断开，正在尝试重连");
+    setTimeout(() => {
+      wsService.connect(settingStore.wsProxyUrl);
+    }, 3000);
+  }
 })
 // ---------- WebSocket 配置 end ------------
 
@@ -171,27 +180,37 @@ const closeVoiceCallPanel = async () => {
   audioService.stopMediaResources();
 };
 
+const ensureBackendUrl = async () => {
+  if (!settingStore.backendUrl) {
+    const { value: backendUrl } = await ElMessageBox.prompt('请输入本地服务器地址：', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      inputValue: 'http://localhost:8081',
+      inputPattern: /^http(s?):\/\/.+/, 
+      inputErrorMessage: '请输入有效的服务器地址(http:// 或 https:// 开头)',
+    });
+    settingStore.backendUrl = backendUrl;
+    ElMessage.success("后端服务器地址已保存");
+  }
+}
+
 onMounted(async () => {
   const loaded = settingStore.loadFromLocal();
-  if (!loaded) {
-    if (!settingStore.backendUrl) {
-			const { value: backendUrl } = await ElMessageBox.prompt('请输入本地服务器地址：', '提示', {
-				confirmButtonText: '确定',
-				cancelButtonText: '取消',
-				inputValue: 'http://localhost:8081',
-				inputPattern: /^http(s?):\/\/.+/,
-				inputErrorMessage: '请输入有效的服务器地址(http:// 或 https:// 开头)',
-			});
-      settingStore.backendUrl = backendUrl;
-      ElMessage.success("后端服务器地址已保存");
-    }
-    await settingStore.fetchConfig();
-    settingStore.saveToLocal();
-    ElMessage.warning("未发现本地配置，默认配置已加载")
-  } else {
+  if (loaded) {
     ElMessage.success("本地配置加载成功");
+    wsService.connect(settingStore.wsProxyUrl);
+    return;
   }
-  wsService.connect(settingStore.wsProxyUrl);
+
+  await ensureBackendUrl();
+  const fetchOk = await settingStore.fetchConfig();
+  if (fetchOk) {
+    settingStore.saveToLocal();
+    ElMessage.warning("未发现本地配置，默认配置已加载并缓存至本地");
+    wsService.connect(settingStore.wsProxyUrl);
+  } else {
+    ElMessage.error("连接失败，请检查服务器是否启动");
+  }
 });
 
 onUnmounted(() => {
