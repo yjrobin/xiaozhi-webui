@@ -3,9 +3,9 @@ import websockets
 import json
 import numpy as np
 import requests
-from ..libs.device import get_mac_address, get_local_ip
-from ..libs.logger import get_logger
-from ..libs.audio import pcm_to_opus, decoder, AudioProcessor
+from ..utils.device import get_mac_address, get_local_ip
+from ..utils.logger import get_logger
+from ..utils.audio import pcm_to_opus, decoder, AudioProcessor
 
 logger = get_logger(__name__)
 

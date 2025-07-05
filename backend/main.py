@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
-from app.libs.logger import get_logger, setup_logging
-from app.libs.system_info import setup_opus
+from app.utils.logger import get_logger, setup_logging
+from app.utils.system_info import setup_opus
 
 setup_logging()
 setup_opus()  # 在导入 opuslib 之前 windows 需要手动加载 opus.dll 动态链接库

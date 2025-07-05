@@ -1,25 +1,10 @@
-interface AudioWorkletProcessor {
-    readonly port: MessagePort;
-    process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean;
-}
-
-declare const AudioWorkletProcessor: {
-    prototype: AudioWorkletProcessor;
-    new(options?: AudioWorkletNodeOptions): AudioWorkletProcessor;
-};
-
-declare function registerProcessor(
-    name: string,
-    processor: new (options?: AudioWorkletNodeOptions) => AudioWorkletProcessor
-): void;
-
 class AudioProcessor extends AudioWorkletProcessor {
     constructor() {
         super();
     }
 
     // 处理节点的内部逻辑
-    process(inputs: Float32Array[][]): boolean {
+    process(inputs) {
         // inputs[0] 代表第一个输入通道
         // inputs[0][0] 代表第一个输入通道的第一个声道（单声道音频）
         const input = inputs[0][0];

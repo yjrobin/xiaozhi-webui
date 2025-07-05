@@ -1,7 +1,7 @@
 import os
-from .libs.logger import get_logger
+from .utils.logger import get_logger
 import json
-from .libs.device import get_client_id, get_mac_address
+from .utils.device import get_client_id, get_mac_address
 from .constant.file import BASE_DIR
 
 logger = get_logger(__name__)

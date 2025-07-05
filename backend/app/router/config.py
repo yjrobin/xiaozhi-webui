@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from ..config import ConfigManager
 from ..constant.repsonse import BaseResponse
-from ..libs.logger import get_logger
+from ..utils.logger import get_logger
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/config", tags=["config"])
