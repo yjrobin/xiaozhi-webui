@@ -22,7 +22,7 @@ class ConfigManager:
             "OTA_VERSION_URL": "https://api.tenclass.net/xiaozhi/ota/",
             "TOKEN_ENABLE": True,
             "TOKEN": "test_token",
-            "BACKEND_URL": "http://0.0.0.0:8081",
+            "BACKEND_URL": "http://0.0.0.0:8000",
         }
         self._config = {}
         self._init_config()
