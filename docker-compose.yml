@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "8123:80"
+    environment:
+      # This variable will be used by the frontend to know the backend URL
+      # In a real application, you might want to use a more robust way to configure this,
+      # e.g., a proxy in Nginx or a dynamic configuration.
+      VITE_APP_BACKEND_URL: http://backend:8000
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    # You might need to add environment variables here for backend configuration
+    # For example, if your backend needs to know its own URL or other secrets.

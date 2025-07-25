@@ -18,17 +18,4 @@ def create_app():
     # 注册路由
     app.include_router(config.router)
 
-    from fastapi.staticfiles import StaticFiles
-    from starlette.responses import FileResponse
-
-    app.mount("/ui/assets", StaticFiles(directory="/app/frontend/dist/assets"), name="ui_assets")
-
-    @app.get("/ui/{full_path:path}", include_in_schema=False)
-    async def serve_frontend(full_path: str):
-        return FileResponse("/app/frontend/dist/index.html")
-
-    @app.get("/ui", include_in_schema=False)
-    async def serve_ui_root():
-        return FileResponse("/app/frontend/dist/index.html")
-
     return app
