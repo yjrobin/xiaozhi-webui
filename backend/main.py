@@ -49,6 +49,6 @@ if __name__ == "__main__":
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_frontend(full_path: str):
-        return FileResponse("../frontend/dist/index.html")
+        return FileResponse("/app/frontend/dist/index.html")
 
     uvicorn.run(app, host=BACKEND_HOST, port=BACKEND_PORT)
