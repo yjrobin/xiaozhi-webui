@@ -6,7 +6,6 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import ElementPlus from 'unplugin-element-plus/vite'
 
 export default defineConfig({
-  base: '/xiaozhi-webui/',
   plugins: [
     vue(),
     vueDevTools(),
