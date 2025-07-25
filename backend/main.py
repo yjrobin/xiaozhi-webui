@@ -45,7 +45,7 @@ if __name__ == "__main__":
     from fastapi.staticfiles import StaticFiles
     from starlette.responses import FileResponse
 
-    app.mount("/assets", StaticFiles(directory="../frontend/dist/assets"), name="assets")
+    app.mount("/assets", StaticFiles(directory="/app/frontend/dist/assets"), name="assets")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def serve_frontend(full_path: str):
