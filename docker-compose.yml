@@ -19,5 +19,6 @@ services:
       dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
+      - "5000:5000"
     # You might need to add environment variables here for backend configuration
     # For example, if your backend needs to know its own URL or other secrets.
