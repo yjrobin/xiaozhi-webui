@@ -3,7 +3,7 @@
 FROM node:18-alpine as build-stage
 WORKDIR /app
 COPY frontend/package.json ./
-RUN npm install
+RUN npm install && printenv
 COPY frontend/ .
 RUN npm run build
 
