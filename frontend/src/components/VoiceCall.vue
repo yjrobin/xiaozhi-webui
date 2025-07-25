@@ -18,12 +18,12 @@ const emit = defineEmits<{
     <div class="phone-call-container" :class="{ visible: props.isVisible }">
         <div class="voice-avatar-container">
             <div class="voice-avatar" :class="{ speaking: props.chatStateManager.currentState.value === ChatState.AI_SPEAKING }">
-                <img src="/avatar.jpg" alt="小智头像" />
+                <img src="/xiaofanxiaoshi.jpg" alt="小范头像" />
             </div>
             <div v-for="i in 3" :key="i" :class="`ripple-${i}`"></div>
         </div>
         <div class="voice-wave-container">
-            <div 
+            <div
                 class="voice-wave"
                 :class="{ active: props.chatStateManager.currentState.value === ChatState.USER_SPEAKING }"
                 :style="{ '--wave-height': `${voiceAnimationManager.voiceWaveHeight.value}px` }"

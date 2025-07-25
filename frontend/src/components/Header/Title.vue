@@ -5,7 +5,7 @@ import SettingButton from '../Setting/SettingButton.vue'
 
 <template>
     <div class="title-container">
-        <span class="title">小智</span>
+        <span class="title">小范</span>
         <SettingButton />
     </div>
 </template>
