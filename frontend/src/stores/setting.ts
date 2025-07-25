@@ -19,7 +19,7 @@ export const useSettingStore = defineStore('setting', () => {
 	const wsUrl = ref<string>("")
 	const wsProxyUrl = ref<string>("")
 	const otaVersionUrl = ref<string>("")
-	const backendUrl = ref<string>("")
+	const backendUrl = ref<string>(import.meta.env.VITE_APP_BACKEND_URL || "")
 	const tokenEnable = ref<boolean>(false)
 	const token = ref<string>("")
 	const visible = ref<boolean>(false)
