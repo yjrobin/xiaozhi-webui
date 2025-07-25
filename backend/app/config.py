@@ -20,7 +20,7 @@ class ConfigManager:
             "WS_URL": "ws://119.28.31.221:10088/api/xiaozhi/",
             "WS_PROXY_URL": "ws://0.0.0.0:5000",
             "OTA_VERSION_URL": "http://119.28.31.221:10087/ui/xiaozhi/xiaozhi/ota/",
-            "TOKEN_ENABLE": False,
+            "TOKEN_ENABLE": True,
             "TOKEN": "test_token",
             "BACKEND_URL": "http://0.0.0.0:8000",
         }

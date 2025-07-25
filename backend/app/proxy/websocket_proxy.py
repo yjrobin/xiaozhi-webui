@@ -65,7 +65,7 @@ class WebSocketProxy:
             "chip_info": {"model": 9, "cores": 2, "revision": 2, "features": 18},
             "application": {
                 "name": "xiaozhi",
-                "version": "1.1.2",
+                "version": "1.6.2",
                 "idf_version": "v5.3.2-dirty",
             },
             "partition_table": [],  # 省略分区表信息
@@ -94,18 +94,18 @@ class WebSocketProxy:
 
             # 解析 JSON 数据
             response_data = response.json()
-
+            logger.debug(f"OTA 服务器返回:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
             # 确保 MQTT 信息存在
-            if "mqtt" in response_data:
-                logger.debug(f"MQTT 信息已更新:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
-                return response_data["mqtt"]
-            else:
-                logger.error(
-                    f"OTA 服务器返回的数据无效: 没有 MQTT 信息: {response_data}"
-                )
-                raise ValueError(
-                    "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址"
-                )
+            # if "mqtt" in response_data:
+            #     logger.debug(f"MQTT 信息已更新:\n{json.dumps(response_data, indent=2, ensure_ascii=False)}")
+            #     return response_data["mqtt"]
+            # else:
+            #     logger.error(
+            #         f"OTA 服务器返回的数据无效: 没有 MQTT 信息: {response_data}"
+            #     )
+            #     raise ValueError(
+            #         "OTA 服务器返回的数据无效，请检查服务器状态或 MAC 地址"
+            #     )
 
         except requests.Timeout:
             logger.error("OTA 请求超时")
