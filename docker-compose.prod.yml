@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: robinbaby/xiaozhi-webui:frontend-v250725
+    ports:
+      - "8123:80"
+    environment:
+      # This variable will be used by the frontend to know the backend URL
+      # In a real application, you might want to use a more robust way to configure this,
+      # e.g., a proxy in Nginx or a dynamic configuration.
+      VITE_APP_BACKEND_URL: http://localhost:8000
+
+  backend:
+    image: robinbaby/xiaozhi-webui:backend-v250725
+    ports:
+      - "8000:8000"
+      - "5000:5000"
+    # You might need to add environment variables here for backend configuration
+    # For example, if your backend needs to know its own URL or other secrets.
