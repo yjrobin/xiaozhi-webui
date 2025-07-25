@@ -42,13 +42,4 @@ if __name__ == "__main__":
         
     logger.info(f"FastAPI 服务器地址: {BACKEND_HOST}:{BACKEND_PORT}")
 
-    from fastapi.staticfiles import StaticFiles
-    from starlette.responses import FileResponse
-
-    app.mount("/assets", StaticFiles(directory="/app/frontend/dist/assets"), name="assets")
-
-    @app.get("/{full_path:path}", include_in_schema=False)
-    async def serve_frontend(full_path: str):
-        return FileResponse("/app/frontend/dist/index.html")
-
     uvicorn.run(app, host=BACKEND_HOST, port=BACKEND_PORT)
