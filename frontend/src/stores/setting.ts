@@ -94,7 +94,6 @@ export const useSettingStore = defineStore('setting', () => {
 		if (localConfig) {
 			const parsedConfig = JSON.parse(localConfig);
 			updateConfig(parsedConfig)
-			backendUrl.value = createAbsoluteUrl(import.meta.env.VITE_APP_BACKEND_URL || parsedConfig.backend_url || "");
 			console.log("[useSettingStore][loadFromLocal] 配置文件加载成功")
 			return true
 		}
