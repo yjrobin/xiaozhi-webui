@@ -12,7 +12,7 @@ services:
       # In a real application, you might want to use a more robust way to configure this,
       # e.g., a proxy in Nginx or a dynamic configuration.
       VITE_APP_BACKEND_URL: /api/xiaozhi-webui-backend
-      VITE_APP_WS_URL: /ws/
+      VITE_APP_WS_URL: /ws/xiaozhi-webui-backend
     networks:
       - xiaozhi-webui-net
 
