@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  xiaozhi-webui-net:
+    driver: bridge
+
 services:
   frontend:
     image: robinbaby/xiaozhi-webui:frontend-v250728-subpath
@@ -7,9 +11,29 @@ services:
       # This variable will be used by the frontend to know the backend URL
       # In a real application, you might want to use a more robust way to configure this,
       # e.g., a proxy in Nginx or a dynamic configuration.
-      VITE_APP_BACKEND_URL: http://localhost/api/xiaozhi-webui-backend
+      VITE_APP_BACKEND_URL: /api/xiaozhi-webui-backend
+      VITE_APP_WS_URL: /ws/
+    networks:
+      - xiaozhi-webui-net
 
   backend:
     image: robinbaby/xiaozhi-webui:backend-v250728-subpath
-    # You might need to add environment variables here for backend configuration
-    # For example, if your backend needs to know its own URL or other secrets.
+    networks:
+      - xiaozhi-webui-net
+
+
+        # location /ui/xiaozhi-webui/ {
+        #     proxy_pass http://frontend_container_ip:80/ui/xiaozhi-webui/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }
+
+        # location /api/xiaozhi-webui-backend/ {
+        #     proxy_pass http://backend_container_ip:8000/api/xiaozhi-webui-backend/;
+        #     proxy_set_header Host $host;
+        #     proxy_set_header X-Real-IP $remote_addr;
+        #     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        #     proxy_set_header X-Forwarded-Proto $scheme;
+        # }

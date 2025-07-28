@@ -1,14 +1,23 @@
 version: '3.8'
 
+networks:
+  xiaozhi-webui-net:
+    driver: bridge
+
 services:
   frontend:
     build:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
-      VITE_APP_BACKEND_URL: http://localhost/api/xiaozhi-webui-backend
+      VITE_APP_BACKEND_URL: /api/xiaozhi-webui-backend
+      VITE_APP_WS_URL: /ws/
+    networks:
+      - xiaozhi-webui-net
 
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    networks:
+      - xiaozhi-webui-net

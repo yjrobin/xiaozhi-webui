@@ -1,5 +1,6 @@
 import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
+import { createAbsoluteUrl } from '../utils'
 
 type ConfigData = {
 	[key: string]: string | boolean,
@@ -18,8 +19,10 @@ export const useSettingStore = defineStore('setting', () => {
 	const deviceId = ref<string>("")
 	const wsUrl = ref<string>("")
 	const wsProxyUrl = ref<string>("")
+
+	wsProxyUrl.value = createAbsoluteUrl(import.meta.env.VITE_APP_WS_URL || "");
 	const otaVersionUrl = ref<string>("")
-	const backendUrl = ref<string>(import.meta.env.VITE_APP_BACKEND_URL || "")
+	const backendUrl = ref<string>(createAbsoluteUrl(import.meta.env.VITE_APP_BACKEND_URL || ""))
 	const tokenEnable = ref<boolean>(false)
 	const token = ref<string>("")
 	const visible = ref<boolean>(false)
@@ -94,7 +97,7 @@ export const useSettingStore = defineStore('setting', () => {
 		if (localConfig) {
 			const parsedConfig = JSON.parse(localConfig);
 			updateConfig(parsedConfig)
-			backendUrl.value = import.meta.env.VITE_APP_BACKEND_URL || parsedConfig.backend_url || "";
+			backendUrl.value = createAbsoluteUrl(import.meta.env.VITE_APP_BACKEND_URL || parsedConfig.backend_url || "");
 			console.log("[useSettingStore][loadFromLocal] 配置文件加载成功")
 			return true
 		}
