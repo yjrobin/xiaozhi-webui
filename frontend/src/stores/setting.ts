@@ -92,7 +92,9 @@ export const useSettingStore = defineStore('setting', () => {
 	const loadFromLocal = (): boolean => {
 		const localConfig = localStorage.getItem('settings')
 		if (localConfig) {
-			updateConfig(JSON.parse(localConfig))
+			const parsedConfig = JSON.parse(localConfig);
+			updateConfig(parsedConfig)
+			backendUrl.value = import.meta.env.VITE_APP_BACKEND_URL || parsedConfig.backend_url || "";
 			console.log("[useSettingStore][loadFromLocal] 配置文件加载成功")
 			return true
 		}

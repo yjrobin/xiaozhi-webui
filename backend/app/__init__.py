@@ -5,7 +5,7 @@ from .router import config
 
 def create_app():
 
-    app = FastAPI()
+    app = FastAPI(root_path="/api/xiaozhi-webui-backend")
 
     # 配置 CORS 中间件
     app.add_middleware(
