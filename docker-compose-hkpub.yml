@@ -1,0 +1,25 @@
+version: '3.8'
+
+networks:
+  xiaozhi-webui-net:
+    external: true
+
+services:
+  frontend:
+    image: robinbaby/xiaozhi-webui:frontend-v250728-subpath
+    environment:
+      VITE_APP_BACKEND_URL: http://127.0.0.1/api/xiaozhi-webui-backend
+    networks:
+      xiaozhi-webui-net:
+        ipv4_address: 172.20.0.10 # Fixed IP for the web service
+    #ports:
+    #  - 8380:80
+
+  backend:
+    image: robinbaby/xiaozhi-webui:backend-v250728-subpath
+    networks:
+      xiaozhi-webui-net:
+        ipv4_address: 172.20.0.11
+    #ports:
+    #  - "8400:8000"
+    #  - "5400:5000"
