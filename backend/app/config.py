@@ -17,9 +17,9 @@ class ConfigManager:
 
     def __init__(self):
         self._default_config = {
-            "WS_URL": "ws://119.28.31.221:10088/api/xiaozhi/",
+            "WS_URL": "wss://ai-cloud.4paradigm.com:9443/api/xiaozhi/",
             "WS_PROXY_URL": "ws://0.0.0.0:5000",
-            "OTA_VERSION_URL": "http://119.28.31.221:10087/ui/xiaozhi/xiaozhi/ota/",
+            "OTA_VERSION_URL": "https://ai-cloud.4paradigm.com:9443/ui/xiaozhi/xiaozhi/ota/",
             "TOKEN_ENABLE": True,
             "TOKEN": "test_token",
             "BACKEND_URL": "http://0.0.0.0:8000",

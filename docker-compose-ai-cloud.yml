@@ -1,0 +1,27 @@
+version: '3.8'
+
+networks:
+  xiaozhi-webui-net:
+    driver: bridge
+
+services:
+  frontend:
+    image: robinbaby/xiaozhi-webui:frontend-v250728-subpath
+    environment:
+      # This variable will be used by the frontend to know the backend URL
+      # In a real application, you might want to use a more robust way to configure this,
+      # e.g., a proxy in Nginx or a dynamic configuration.
+      VITE_APP_BACKEND_URL: http://127.0.0.1/api/xiaozhi-webui-backend
+    ports:
+      - 80:80
+
+    networks:
+      - xiaozhi-webui-net
+
+  backend:
+    image: robinbaby/xiaozhi-webui:backend-v250728-subpath
+    networks:
+      - xiaozhi-webui-net
+    ports:
+      - "8000:8000"
+      - "5000:5000"
