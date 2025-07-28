@@ -1,6 +1,5 @@
 import { ref, type Ref } from 'vue'
 import { defineStore } from 'pinia'
-import { createAbsoluteUrl } from '../utils'
 
 type ConfigData = {
 	[key: string]: string | boolean,
@@ -19,14 +18,12 @@ export const useSettingStore = defineStore('setting', () => {
 	const deviceId = ref<string>("")
 	const wsUrl = ref<string>("")
 	const wsProxyUrl = ref<string>("")
-
-	wsProxyUrl.value = createAbsoluteUrl(import.meta.env.VITE_APP_WS_URL || "");
 	const otaVersionUrl = ref<string>("")
-	const backendUrl = ref<string>(createAbsoluteUrl(import.meta.env.VITE_APP_BACKEND_URL || ""))
+	const backendUrl = ref<string>(import.meta.env.VITE_APP_BACKEND_URL || "")
 	const tokenEnable = ref<boolean>(false)
 	const token = ref<string>("")
 	const visible = ref<boolean>(false)
-	
+
 	const configRefMap: Record<string, Ref<string | boolean>> = {
 		ws_url: wsUrl,
 		ws_proxy_url: wsProxyUrl,

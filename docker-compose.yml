@@ -10,8 +10,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
-      VITE_APP_BACKEND_URL: /api/xiaozhi-webui-backend
-      VITE_APP_WS_URL: /ws/xiaozhi-webui-backend
+      VITE_APP_BACKEND_URL: http://127.0.0.1/api/xiaozhi-webui-backend
     networks:
       - xiaozhi-webui-net
 
