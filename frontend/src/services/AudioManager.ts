@@ -98,7 +98,7 @@ export class AudioService {
       throw new Error("浏览器不支持 AudioWorklet");
     }
     try {
-      await this._audioContext.audioWorklet.addModule("audioProcessor.js");
+      await this._audioContext.audioWorklet.addModule(`${import.meta.env.BASE_URL}audioProcessor.js`);
       console.log("[AudioManager][prepareMediaResources] Audio processor loaded.")
     } catch (e) {
       console.error("[AudioManager][loadAudioWorklet] Error loading audio worklet:", e);
