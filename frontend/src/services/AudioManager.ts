@@ -97,10 +97,13 @@ export class AudioService {
       console.warn("[AudioManager][prepareMediaResources] AudioWorklet is not supported in this browser.");
       throw new Error("浏览器不支持 AudioWorklet");
     }
-    await this._audioContext.audioWorklet.addModule(
-      "/audioProcessor.js"
-    );
-    console.log("[AudioManager][prepareMediaResources] Audio processor loaded.")
+    try {
+      await this._audioContext.audioWorklet.addModule("audioProcessor.js");
+      console.log("[AudioManager][prepareMediaResources] Audio processor loaded.")
+    } catch (e) {
+      console.error("[AudioManager][loadAudioWorklet] Error loading audio worklet:", e);
+      throw e;
+    }
   }
 
   private initAudioStream = async () => {
